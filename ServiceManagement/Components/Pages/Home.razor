@@ -32,15 +32,15 @@
                         {
                             <tr>
                                 <td>@service.Name</td>
-                                <td>
-                                    @if (!initialization)
+                                <td class="align-middle">
+                                    @if (!service.IsInChangeState)
                                     {
                                         <span class="service-status @(service.IsRunning ? "running-status" : "stopped-status")">@(service.IsRunning ? "Running" : "Stopped")</span>
                                     }
                                 </td>
                                 <td>
                                     <div class="d-flex align-items-center">
-                                        @if (!initialization)
+                                        @if (!service.IsInChangeState)
                                         {
                                         @if (service.IsRunning)
                                         {
@@ -78,15 +78,15 @@
                         {
                             <tr>
                                 <td>@appPool.Name</td>
-                                <td>
-                                    @if (!initialization) 
+                                <td class="align-middle">
+                                    @if (!appPool.IsInChangeState)
                                     {
                                         <span class="service-status @(appPool.IsRunning ? "running-status" : "stopped-status")">@(appPool.IsRunning ? "Running" : "Stopped")</span>
                                     }
                                 </td>
                                 <td>
                                     <div class="d-flex align-items-center">
-                                        @if (!initialization)
+                                        @if (!appPool.IsInChangeState)
                                         {
                                         @if (appPool.IsRunning)
                                         {
