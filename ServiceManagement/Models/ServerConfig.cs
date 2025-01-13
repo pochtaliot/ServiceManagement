@@ -11,6 +11,7 @@ public class ServiceConfig
 public class Server
 {
     public string Name { get; set; } = "";
+    public string Alias { get; set; } = "";
     public ServerLocationType Location { get; set; }
     public List<Service> Services { get; set; } = new();
     public List<AppPool> AppPools { get; set; } = new();
@@ -33,7 +34,6 @@ public class AppPool
 public class Service
 {
     public string Name { get; set; } = "";
-    public string Alias { get; set; } = "";
     public ServiceControllerStatus Status { get; set; }
     public string? StartupArguments { get; set; }
     public bool IsRunning => Status == ServiceControllerStatus.Running;
