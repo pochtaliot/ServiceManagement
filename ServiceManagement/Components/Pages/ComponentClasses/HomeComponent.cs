@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.Options;
 using Microsoft.Web.Administration;
 using ServiceManagement.Services;
 using System.ServiceProcess;
@@ -11,6 +12,38 @@ public class HomeComponent : ComponentBase
     [Inject] protected IWindowsServiceManager ServiceManager { get; set; } = null!;
     [Inject] protected IPowershellIISManager PowershellIISManager { get; set; } = null!;
     [Inject] protected ILocalIISManager LocalIISManager { get; set; } = null!;
+    [Inject] protected IOptions<ServiceConfig> Config { get; set; } = null!;
+    protected bool initialization { get; set; } = true;
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            foreach (var server in Config.Value.Servers)
+            {
+                foreach (var service in server.Services)
+                {
+                    service.Status = ServiceManager.GetServiceStatusAsync(server.Name, service.Name);
+                    service.IsInChangeState = false;
+                    StateHasChanged();
+                }
+
+                foreach (var appPool in server.AppPools)
+                {
+                    if (server.Location == ServerLocationType.Remote)
+                        appPool.State = PowershellIISManager.GetAppPoolStatusAsync(server.Name, appPool);
+                    else
+                        appPool.State = LocalIISManager.GetAppPoolStatusAsync(appPool);
+
+                    appPool.IsInChangeState = false;
+                    StateHasChanged();
+                }
+            }
+
+            initialization = false;
+            StateHasChanged();
+        }
+    }
 
     protected async Task StartService(string serverName, Service service, string? startupArguments)
     {

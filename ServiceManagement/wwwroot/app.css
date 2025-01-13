@@ -95,3 +95,33 @@ h1:focus {
 .margin-left-10 {
     margin-left: 10px;
 }
+
+.color-green {
+    color: forestgreen;
+}
+
+.color-red {
+    color: orangered;
+}
+
+.icon-button-md {
+    font-size: 2rem;
+    cursor: pointer;
+}
+
+.service-status {
+    padding: 7px;
+    border: 1px solid silver;
+    border-radius: 15px;
+    font-style: italic;
+}
+
+.running-status {
+    background-color: #a0f0a0;
+    color: #155c15;
+}
+
+.stopped-status {
+    background-color: #ff947e;
+    color: #7c1e1e;
+}

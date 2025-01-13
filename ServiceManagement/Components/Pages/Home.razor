@@ -1,7 +1,7 @@
 ﻿@page "/"
 @inherits ComponentClasses.HomeComponent
-@inject IOptions<ServiceConfig> Config
 @rendermode InteractiveServer
+@using Microsoft.Web.Administration
 
 <h3 class="text-primary">Service and IIS Manager</h3>
 
@@ -32,18 +32,28 @@
                         {
                             <tr>
                                 <td>@service.Name</td>
-                                <td>@(service.IsRunning ? "Running" : "Stopped")</td>
                                 <td>
-                                    @if (service.IsRunning)
+                                    @if (!initialization)
                                     {
-                                        <button class="btn btn-danger btn-sm" @onclick="() => StopService(server.Name, service)">Stop</button>
+                                        <span class="service-status @(service.IsRunning ? "running-status" : "stopped-status")">@(service.IsRunning ? "Running" : "Stopped")</span>
                                     }
-                                    else
-                                    {
-                                        <button class="btn btn-success btn-sm" @onclick="() => StartService(server.Name, service, service.StartupArguments)">Start</button>
-                                    }
-                                    <div class="spinner-border margin-left-10 @(service.IsInChangeState ? "" : "d-none")" role="status">
-                                        <span class="sr-only"></span>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        @if (!initialization)
+                                        {
+                                        @if (service.IsRunning)
+                                        {
+                                        <i class="bi bi-stop-fill color-red icon-button-md" @onclick="() => StopService(server.Name, service)"></i>
+                                        }
+                                        else
+                                        {
+                                        <i class="bi bi-play-fill color-green icon-button-md" @onclick="() => StartService(server.Name, service, service.StartupArguments)"></i>
+                                        }
+                                        }
+                                        <div class="spinner-border margin-left-10 @(service.IsInChangeState ? "" : "d-none")" role="status">
+                                            <span class="sr-only"></span>
+                                        </div>
                                     </div>
                                 </td>
                             </tr>
@@ -68,18 +78,28 @@
                         {
                             <tr>
                                 <td>@appPool.Name</td>
-                                <td>@(appPool.State == Microsoft.Web.Administration.ObjectState.Started ? "Running" : "Stopped")</td>
                                 <td>
-                                    @if (appPool.State == Microsoft.Web.Administration.ObjectState.Started)
+                                    @if (!initialization) 
                                     {
-                                        <button class="btn btn-danger btn-sm" @onclick="() => StopAppPool(server, appPool)">Stop</button>
+                                        <span class="service-status @(appPool.IsRunning ? "running-status" : "stopped-status")">@(appPool.IsRunning ? "Running" : "Stopped")</span>
                                     }
-                                    else
-                                    {
-                                        <button class="btn btn-success btn-sm" @onclick="() => StartAppPool(server, appPool)">Start</button>
-                                    }
-                                    <div class="spinner-border margin-left-10 @(appPool.IsInChangeState ? "" : "d-none")" role="status">
-                                        <span class="sr-only"></span>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        @if (!initialization)
+                                        {
+                                        @if (appPool.IsRunning)
+                                        {
+                                        <i class="bi bi-stop-fill color-red icon-button-md" @onclick="() => StopAppPool(server, appPool)"></i>
+                                        }
+                                        else
+                                        {
+                                        <i class="bi bi-play-fill color-green icon-button-md" @onclick="() => StartAppPool(server, appPool)"></i>
+                                        }
+                                        }
+                                        <div class="spinner-border margin-left-10 @(appPool.IsInChangeState ? "" : "d-none")" role="status">
+                                            <span class="sr-only"></span>
+                                        </div>
                                     </div>
                                 </td>
                             </tr>
@@ -92,31 +112,5 @@
 }
 
 @code {
-
-    protected override void OnAfterRender(bool firstRender)
-    {
-        if (firstRender)
-        {
-            foreach (var server in Config.Value.Servers)
-            {
-                foreach (var service in server.Services)
-                {
-                    service.Status = ServiceManager.GetServiceStatusAsync(server.Name, service.Name);
-                    service.IsInChangeState = false;
-                    StateHasChanged();
-                }
-
-                foreach (var appPool in server.AppPools)
-                {
-                    if (server.Location == ServerLocationType.Remote)
-                        appPool.State = PowershellIISManager.GetAppPoolStatusAsync(server.Name, appPool);
-                    else
-                        appPool.State = LocalIISManager.GetAppPoolStatusAsync(appPool);
-
-                    appPool.IsInChangeState = false;
-                    StateHasChanged();
-                }
-            }
-        }
-    }
+    
 }
