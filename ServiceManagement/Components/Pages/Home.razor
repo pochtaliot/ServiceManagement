@@ -12,40 +12,43 @@
             <h4 class="card-title">@server.Alias (@server.Name)</h4>
         </div>
         <div class="card-body">
-            <h5 class="text-secondary">Windows Services</h5>
-            <table class="table-striped table-hover table table-fixed">
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var service in server.Services)
-                    {
+            @if (_services.Any())
+            {
+                <h5 class="text-secondary">Windows Services</h5>
+                <table class="table-striped table-hover table table-fixed">
+                    <thead>
                         <tr>
-                            <td>@service.Name</td>
-                            <td>@(service.IsRunning ? "Running" : "Stopped")</td>
-                            <td>
-                                @if (service.IsRunning)
-                                {
-                                    <button class="btn btn-danger btn-sm" @onclick="() => StopService(server.Name, service)">Stop</button>
-                                }
-                                else
-                                {
-                                    <button class="btn btn-success btn-sm" @onclick="() => StartService(server.Name, service, service.StartupArguments)">Start</button>
-                                }
-                                <div class="spinner-border margin-left-10 @(PreloadService.WaitingServiceStateChange ? "" : "d-none")" role="status">
-                                    <span class="sr-only"></span>
-                                </div>
-                            </td>
+                            <th>Name</th>
+                            <th>Status</th>
+                            <th>Actions</th>
                         </tr>
-                    }
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        @foreach (var service in _services)
+                        {
+                            <tr>
+                                <td>@service.Name</td>
+                                <td>@(service.IsRunning ? "Running" : "Stopped")</td>
+                                <td>
+                                    @if (service.IsRunning)
+                                    {
+                                        <button class="btn btn-danger btn-sm" @onclick="() => StopService(server.Name, service)">Stop</button>
+                                    }
+                                    else
+                                    {
+                                        <button class="btn btn-success btn-sm" @onclick="() => StartService(server.Name, service, service.StartupArguments)">Start</button>
+                                    }
+                                    <div class="spinner-border margin-left-10 @(PreloadService.WaitingServiceStateChange ? "" : "d-none")" role="status">
+                                        <span class="sr-only"></span>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
 
-            @if (server.AppPools.Any())
+            @if (_appPools.Any())
             {
                 <h5 class="text-secondary">IIS App Pools</h5>
                 <table class="table-striped table-hover table table-fixed">
@@ -57,7 +60,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var appPool in server.AppPools)
+                        @foreach (var appPool in _appPools)
                         {
                             <tr>
                                 <td>@appPool.Name</td>
@@ -86,7 +89,10 @@
 
 @code {
 
-    protected override void OnInitialized()
+    private List<Service> _services = new List<Service>();
+    private List<AppPool> _appPools = new List<AppPool>();
+
+    protected override async Task OnInitializedAsync()
     {
         servers = Config.Value.Servers;
 
@@ -95,6 +101,8 @@
             foreach (var service in server.Services)
             {
                 service.Status = ServiceManager.GetServiceStatusAsync(server.Name, service.Name);
+                _services.Add(service);
+                await InvokeAsync(StateHasChanged);
             }
 
             foreach (var appPool in server.AppPools)
@@ -103,6 +111,9 @@
                     appPool.State = PowershellIISManager.GetAppPoolStatusAsync(server.Name, appPool);
                 else
                     appPool.State = LocalIISManager.GetAppPoolStatusAsync(appPool);
+
+                _appPools.Add(appPool);
+                await InvokeAsync(StateHasChanged);
             }
         }
     }
