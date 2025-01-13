@@ -5,14 +5,18 @@
 
 <h3 class="text-primary">Service and IIS Manager</h3>
 
-@foreach (var server in servers)
+<div class="spinner-border @(PreloadService.WaitingForInitialStatusesRead ? "" : "d-none")" role="status">
+    <span class="sr-only"></span>
+</div>
+
+@foreach (var server in Config.Value.Servers)
 {
     <div class="card my-3">
         <div class="card-header">
             <h4 class="card-title">@server.Alias (@server.Name)</h4>
         </div>
         <div class="card-body">
-            @if (_services.Any())
+            @if (server.Services.Any())
             {
                 <h5 class="text-secondary">Windows Services</h5>
                 <table class="table-striped table-hover table table-fixed">
@@ -24,7 +28,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var service in _services)
+                        @foreach (var service in server.Services)
                         {
                             <tr>
                                 <td>@service.Name</td>
@@ -38,7 +42,7 @@
                                     {
                                         <button class="btn btn-success btn-sm" @onclick="() => StartService(server.Name, service, service.StartupArguments)">Start</button>
                                     }
-                                    <div class="spinner-border margin-left-10 @(PreloadService.WaitingServiceStateChange ? "" : "d-none")" role="status">
+                                    <div class="spinner-border margin-left-10 @(service.IsInChangeState ? "" : "d-none")" role="status">
                                         <span class="sr-only"></span>
                                     </div>
                                 </td>
@@ -48,7 +52,7 @@
                 </table>
             }
 
-            @if (_appPools.Any())
+            @if (server.AppPools.Any())
             {
                 <h5 class="text-secondary">IIS App Pools</h5>
                 <table class="table-striped table-hover table table-fixed">
@@ -60,7 +64,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var appPool in _appPools)
+                        @foreach (var appPool in server.AppPools)
                         {
                             <tr>
                                 <td>@appPool.Name</td>
@@ -74,7 +78,7 @@
                                     {
                                         <button class="btn btn-success btn-sm" @onclick="() => StartAppPool(server, appPool)">Start</button>
                                     }
-                                    <div class="spinner-border margin-left-10 @(PreloadService.WaitingAppPoolStateChange ? "" : "d-none")" role="status">
+                                    <div class="spinner-border margin-left-10 @(appPool.IsInChangeState ? "" : "d-none")" role="status">
                                         <span class="sr-only"></span>
                                     </div>
                                 </td>
@@ -89,31 +93,29 @@
 
 @code {
 
-    private List<Service> _services = new List<Service>();
-    private List<AppPool> _appPools = new List<AppPool>();
-
-    protected override async Task OnInitializedAsync()
+    protected override void OnAfterRender(bool firstRender)
     {
-        servers = Config.Value.Servers;
-
-        foreach (var server in servers)
+        if (firstRender)
         {
-            foreach (var service in server.Services)
+            foreach (var server in Config.Value.Servers)
             {
-                service.Status = ServiceManager.GetServiceStatusAsync(server.Name, service.Name);
-                _services.Add(service);
-                await InvokeAsync(StateHasChanged);
-            }
+                foreach (var service in server.Services)
+                {
+                    service.Status = ServiceManager.GetServiceStatusAsync(server.Name, service.Name);
+                    service.IsInChangeState = false;
+                    StateHasChanged();
+                }
 
-            foreach (var appPool in server.AppPools)
-            {
-                if (server.Location == ServerLocationType.Remote)
-                    appPool.State = PowershellIISManager.GetAppPoolStatusAsync(server.Name, appPool);
-                else
-                    appPool.State = LocalIISManager.GetAppPoolStatusAsync(appPool);
+                foreach (var appPool in server.AppPools)
+                {
+                    if (server.Location == ServerLocationType.Remote)
+                        appPool.State = PowershellIISManager.GetAppPoolStatusAsync(server.Name, appPool);
+                    else
+                        appPool.State = LocalIISManager.GetAppPoolStatusAsync(appPool);
 
-                _appPools.Add(appPool);
-                await InvokeAsync(StateHasChanged);
+                    appPool.IsInChangeState = false;
+                    StateHasChanged();
+                }
             }
         }
     }

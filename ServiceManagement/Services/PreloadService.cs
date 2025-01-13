@@ -4,6 +4,7 @@ public class PreloadService
 {
     public bool WaitingServiceStateChange { get; private set; }
     public bool WaitingAppPoolStateChange { get; private set; }
+    public bool WaitingForInitialStatusesRead { get; private set; }
 
     public async Task ShowWaitingService()
     {
@@ -25,6 +26,18 @@ public class PreloadService
     public async Task HideWaitingAppPool()
     {
         WaitingAppPoolStateChange = false;
+        await Task.Yield();
+    }
+
+    public async Task ShowWaitingForInitialStatusesRead()
+    {
+        WaitingForInitialStatusesRead = true;
+        await Task.Yield();
+    }
+
+    public async Task HideWaitingForInitialStatusesRead()
+    {
+        WaitingForInitialStatusesRead = false;
         await Task.Yield();
     }
 }

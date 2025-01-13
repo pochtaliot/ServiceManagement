@@ -27,6 +27,7 @@ public class AppPool
 {
     public string Name { get; set; } = "";
     public ObjectState State { get; set; }
+    public bool IsInChangeState { get; set; } = true;
     public bool IsRunning => State == ObjectState.Started;
 
 }
@@ -36,5 +37,6 @@ public class Service
     public string Name { get; set; } = "";
     public ServiceControllerStatus Status { get; set; }
     public string? StartupArguments { get; set; }
+    public bool IsInChangeState { get; set; } = true;
     public bool IsRunning => Status == ServiceControllerStatus.Running;
 }

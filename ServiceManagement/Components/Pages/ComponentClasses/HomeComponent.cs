@@ -7,7 +7,6 @@ namespace ServiceManagement.Components.Pages.ComponentClasses;
 
 public class HomeComponent : ComponentBase
 {
-    protected List<Server> servers = new List<Server>();
     [Inject] protected PreloadService PreloadService { get; set; } = null!;
     [Inject] protected IWindowsServiceManager ServiceManager { get; set; } = null!;
     [Inject] protected IPowershellIISManager PowershellIISManager { get; set; } = null!;
@@ -15,7 +14,8 @@ public class HomeComponent : ComponentBase
 
     protected async Task StartService(string serverName, Service service, string? startupArguments)
     {
-        await PreloadService.ShowWaitingService();
+        service.IsInChangeState = true;
+        await Task.Yield();
 
         ServiceManager.StartServiceAsync(serverName, service.Name, startupArguments);
 
@@ -24,12 +24,13 @@ public class HomeComponent : ComponentBase
 
         service.Status = ServiceControllerStatus.Running;
 
-        await PreloadService.HideWaitingService();
+        service.IsInChangeState = false;
     }
 
     protected async Task StopService(string serverName, Service service)
     {
-        await PreloadService.ShowWaitingService();
+        service.IsInChangeState = true;
+        await Task.Yield();
 
         ServiceManager.StopServiceAsync(serverName, service.Name);
 
@@ -38,12 +39,13 @@ public class HomeComponent : ComponentBase
 
         service.Status = ServiceControllerStatus.Stopped;
 
-        await PreloadService.HideWaitingService();
+        service.IsInChangeState = false;
     }
 
     protected async Task StartAppPool(Server server, AppPool appPool)
     {
-        await PreloadService.ShowWaitingAppPool();
+        appPool.IsInChangeState = true;
+        await Task.Yield();
 
         if (server.Location == ServerLocationType.Remote)
         {
@@ -62,12 +64,13 @@ public class HomeComponent : ComponentBase
 
         appPool.State = ObjectState.Started;
 
-        await PreloadService.HideWaitingAppPool();
+        appPool.IsInChangeState = false;
     }
 
     protected async Task StopAppPool(Server server, AppPool appPool)
     {
-        await PreloadService.ShowWaitingAppPool();
+        appPool.IsInChangeState = true;
+        await Task.Yield();
 
         if (server.Location == ServerLocationType.Remote)
         {
@@ -86,7 +89,7 @@ public class HomeComponent : ComponentBase
 
         appPool.State = ObjectState.Stopped;
 
-        await PreloadService.HideWaitingAppPool();
+        appPool.IsInChangeState = false;
     }
 
     protected ServiceControllerStatus GetServiceState(string serverName, Service service) =>
