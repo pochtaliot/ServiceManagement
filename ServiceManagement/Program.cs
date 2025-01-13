@@ -10,7 +10,7 @@ builder.Services.AddRazorComponents()
 
 builder.Services.Configure<ServiceConfig>(builder.Configuration.GetSection("ServiceConfig"));
 builder.Services.AddSingleton<IWindowsServiceManager, WindowsServiceManager>();
-builder.Services.AddSingleton<IRemoteIISManager, RemoteIISManager>();
+builder.Services.AddSingleton<IPowershellIISManager, PowershellIISManager>();
 builder.Services.AddSingleton<ILocalIISManager, LocalIISManager>();
 builder.Services.AddSingleton<PreloadService>();
 

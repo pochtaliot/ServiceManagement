@@ -100,7 +100,7 @@
             foreach (var appPool in server.AppPools)
             {
                 if (server.Location == ServerLocationType.Remote)
-                    appPool.State = RemoteIISManager.GetAppPoolStatusAsync(server.Name, appPool);
+                    appPool.State = PowershellIISManager.GetAppPoolStatusAsync(server.Name, appPool);
                 else
                     appPool.State = LocalIISManager.GetAppPoolStatusAsync(appPool);
             }

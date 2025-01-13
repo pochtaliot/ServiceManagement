@@ -10,7 +10,7 @@ public class HomeComponent : ComponentBase
     protected List<Server> servers = new List<Server>();
     [Inject] protected PreloadService PreloadService { get; set; } = null!;
     [Inject] protected IWindowsServiceManager ServiceManager { get; set; } = null!;
-    [Inject] protected IRemoteIISManager RemoteIISManager { get; set; } = null!;
+    [Inject] protected IPowershellIISManager PowershellIISManager { get; set; } = null!;
     [Inject] protected ILocalIISManager LocalIISManager { get; set; } = null!;
 
     protected async Task StartService(string serverName, Service service, string? startupArguments)
@@ -47,9 +47,9 @@ public class HomeComponent : ComponentBase
 
         if (server.Location == ServerLocationType.Remote)
         {
-            RemoteIISManager.StartAppPoolAsync(server.Name, appPool);
+            PowershellIISManager.StartAppPoolAsync(server.Name, appPool);
 
-            while (RemoteIISManager.GetAppPoolStatusAsync(server.Name, appPool) != ObjectState.Started)
+            while (PowershellIISManager.GetAppPoolStatusAsync(server.Name, appPool) != ObjectState.Started)
                 await Task.Delay(1000);
         }
         else
@@ -71,9 +71,9 @@ public class HomeComponent : ComponentBase
 
         if (server.Location == ServerLocationType.Remote)
         {
-            RemoteIISManager.StopAppPoolAsync(server.Name, appPool);
+            PowershellIISManager.StopAppPoolAsync(server.Name, appPool);
 
-            while (RemoteIISManager.GetAppPoolStatusAsync(server.Name, appPool) != ObjectState.Stopped)
+            while (PowershellIISManager.GetAppPoolStatusAsync(server.Name, appPool) != ObjectState.Stopped)
                 await Task.Delay(1000);
         }
         else
@@ -95,7 +95,7 @@ public class HomeComponent : ComponentBase
     protected ObjectState GetAppPoolState(Server server, AppPool appPool)
     {
         if (server.Location == ServerLocationType.Remote)
-            return RemoteIISManager.GetAppPoolStatusAsync(server.Name, appPool);
+            return PowershellIISManager.GetAppPoolStatusAsync(server.Name, appPool);
         else
             return LocalIISManager.GetAppPoolStatusAsync(appPool);
     }
