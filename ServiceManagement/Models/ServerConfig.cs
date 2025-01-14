@@ -6,6 +6,11 @@ namespace ServiceManagement;
 public class ServiceConfig
 {
     public List<Server> Servers { get; set; } = new();
+    public void SetAllToChangingState()
+    {
+        Servers.ForEach(f => f.Services.ForEach(ff => ff.IsInChangeState = true));
+        Servers.ForEach(f => f.AppPools.ForEach(ff => ff.IsInChangeState = true));
+    }
 }
 
 public class Server

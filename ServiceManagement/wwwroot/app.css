@@ -125,3 +125,7 @@ h1:focus {
     background-color: #ff947e;
     color: #7c1e1e;
 }
+
+.table > :not(caption) > * > * {
+    padding: 0rem .5rem;
+}

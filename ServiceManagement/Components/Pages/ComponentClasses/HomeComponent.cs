@@ -12,7 +12,7 @@ public class HomeComponent : ComponentBase
     [Inject] protected IWindowsServiceManager ServiceManager { get; set; } = null!;
     [Inject] protected IPowershellIISManager PowershellIISManager { get; set; } = null!;
     [Inject] protected ILocalIISManager LocalIISManager { get; set; } = null!;
-    [Inject] protected IOptions<ServiceConfig> Config { get; set; } = null!;
+    [Inject] protected IOptionsSnapshot<ServiceConfig> Config { get; set; } = null!;
     protected bool initialization { get; set; } = true;
 
     protected override void OnAfterRender(bool firstRender)
