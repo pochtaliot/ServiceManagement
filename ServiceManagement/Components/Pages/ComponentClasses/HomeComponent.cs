@@ -21,26 +21,43 @@ public class HomeComponent : ComponentBase
         {
             foreach (var server in Config.Value.Servers)
             {
-                foreach (var service in server.Services)
-                {
-                    service.Status = ServiceManager.GetServiceStatusAsync(server.Name, service.Name);
-                    service.IsInChangeState = false;
-                    StateHasChanged();
-                }
-
-                foreach (var appPool in server.AppPools)
-                {
-                    if (server.Location == ServerLocationType.Remote)
-                        appPool.State = PowershellIISManager.GetAppPoolStatusAsync(server.Name, appPool);
-                    else
-                        appPool.State = LocalIISManager.GetAppPoolStatusAsync(appPool);
-
-                    appPool.IsInChangeState = false;
-                    StateHasChanged();
-                }
+                RefreshServices(server);
+                RefreshAppPools(server);
             }
 
             initialization = false;
+            StateHasChanged();
+        }
+    }
+    protected async void RefreshServices(Server server)
+    {
+        await Task.Yield();
+
+        foreach (var service in server.Services)
+        {
+            service.IsInChangeState = true;
+            StateHasChanged();
+            service.Status = ServiceManager.GetServiceStatusAsync(server.Name, service.Name);
+            service.IsInChangeState = false;
+            StateHasChanged();
+        }
+    }
+
+    protected async void RefreshAppPools(Server server)
+    {
+        await Task.Yield();
+
+        foreach (var appPool in server.AppPools)
+        {
+            appPool.IsInChangeState = true;
+            StateHasChanged();
+
+            if (server.Location == ServerLocationType.Remote)
+                appPool.State = PowershellIISManager.GetAppPoolStatusAsync(server.Name, appPool);
+            else
+                appPool.State = LocalIISManager.GetAppPoolStatusAsync(appPool);
+
+            appPool.IsInChangeState = false;
             StateHasChanged();
         }
     }

@@ -12,13 +12,17 @@
 @foreach (var server in Config.Value.Servers)
 {
     <div class="card my-3">
-        <div class="card-header">
+        <div class="card-header d-flex align-items-center justify-content-between">
             <h4 class="card-title">@server.Alias (@server.Name)</h4>
+            @* <i class="bi bi-arrow-clockwise icon-button-md"></i> *@
         </div>
         <div class="card-body">
             @if (server.Services.Any())
             {
-                <h5 class="text-secondary">Windows Services</h5>
+                <div class="d-flex align-items-center justify-content-between">
+                    <h5 class="text-secondary">Windows Services</h5>
+                    <i class="bi bi-arrow-clockwise icon-button-md" @onclick="() => RefreshServices(server)"></i>
+                </div>
                 <table class="table-striped table-hover table table-fixed">
                     <thead>
                         <tr>
@@ -40,16 +44,16 @@
                                 </td>
                                 <td>
                                     <div class="d-flex align-items-center">
-                                        @if (!service.IsInChangeState)
+                                        @if (!initialization)
                                         {
-                                        @if (service.IsRunning)
-                                        {
-                                        <i class="bi bi-stop-fill color-red icon-button-md" @onclick="() => StopService(server.Name, service)"></i>
-                                        }
-                                        else
-                                        {
-                                        <i class="bi bi-play-fill color-green icon-button-md" @onclick="() => StartService(server.Name, service, service.StartupArguments)"></i>
-                                        }
+                                            @if (service.IsRunning)
+                                            {
+                                                <i class="bi bi-stop-fill color-red icon-button-md" @onclick="() => StopService(server.Name, service)"></i>
+                                            }
+                                            else
+                                            {
+                                                <i class="bi bi-play-fill color-green icon-button-md" @onclick="() => StartService(server.Name, service, service.StartupArguments)"></i>
+                                            }
                                         }
                                         <div class="spinner-border margin-left-10 @(service.IsInChangeState ? "" : "d-none")" role="status">
                                             <span class="sr-only"></span>
@@ -64,7 +68,10 @@
 
             @if (server.AppPools.Any())
             {
-                <h5 class="text-secondary">IIS App Pools</h5>
+                <div class="d-flex align-items-center justify-content-between">
+                    <h5 class="text-secondary">IIS App Pools</h5>
+                    <i class="bi bi-arrow-clockwise icon-button-md" @onclick="() => RefreshAppPools(server)"></i>
+                </div>
                 <table class="table-striped table-hover table table-fixed">
                     <thead>
                         <tr>
@@ -86,16 +93,16 @@
                                 </td>
                                 <td>
                                     <div class="d-flex align-items-center">
-                                        @if (!appPool.IsInChangeState)
+                                        @if (!initialization)
                                         {
-                                        @if (appPool.IsRunning)
-                                        {
-                                        <i class="bi bi-stop-fill color-red icon-button-md" @onclick="() => StopAppPool(server, appPool)"></i>
-                                        }
-                                        else
-                                        {
-                                        <i class="bi bi-play-fill color-green icon-button-md" @onclick="() => StartAppPool(server, appPool)"></i>
-                                        }
+                                            @if (appPool.IsRunning)
+                                            {
+                                                <i class="bi bi-stop-fill color-red icon-button-md" @onclick="() => StopAppPool(server, appPool)"></i>
+                                            }
+                                            else
+                                            {
+                                                <i class="bi bi-play-fill color-green icon-button-md" @onclick="() => StartAppPool(server, appPool)"></i>
+                                            }
                                         }
                                         <div class="spinner-border margin-left-10 @(appPool.IsInChangeState ? "" : "d-none")" role="status">
                                             <span class="sr-only"></span>
@@ -112,5 +119,4 @@
 }
 
 @code {
-    
 }
