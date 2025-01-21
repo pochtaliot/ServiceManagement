@@ -19,6 +19,9 @@ public class HomeComponent : ComponentBase
     {
         if (firstRender)
         {
+            initialization = true;
+            StateHasChanged();
+
             foreach (var server in Config.Value.Servers)
             {
                 RefreshServices(server);
