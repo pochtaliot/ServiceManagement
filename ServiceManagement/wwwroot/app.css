@@ -105,12 +105,12 @@ h1:focus {
 }
 
 .icon-button-md {
-    font-size: 2rem;
+    font-size: 1.8rem;
     cursor: pointer;
 }
 
 .service-status {
-    padding: 7px;
+    padding: 5px;
     border: 1px solid silver;
     border-radius: 15px;
     font-style: italic;
