@@ -15,7 +15,7 @@ public class HomeComponent : ComponentBase
     [Inject] protected IOptionsSnapshot<ServiceConfig> Config { get; set; } = null!;
     protected bool initialization { get; set; } = true;
 
-    protected override void OnAfterRender(bool firstRender)
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
@@ -24,15 +24,15 @@ public class HomeComponent : ComponentBase
 
             foreach (var server in Config.Value.Servers)
             {
-                RefreshServices(server);
-                RefreshAppPools(server);
+                await RefreshServices(server);
+                await RefreshAppPools(server);
             }
 
             initialization = false;
             StateHasChanged();
         }
     }
-    protected async void RefreshServices(Server server)
+    protected async Task RefreshServices(Server server)
     {
         await Task.Yield();
 
@@ -46,7 +46,7 @@ public class HomeComponent : ComponentBase
         }
     }
 
-    protected async void RefreshAppPools(Server server)
+    protected async Task RefreshAppPools(Server server)
     {
         await Task.Yield();
 

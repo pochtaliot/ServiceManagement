@@ -44,7 +44,7 @@
                                 </td>
                                 <td>
                                     <div class="d-flex align-items-center">
-                                        @if (!initialization)
+                                        @if (!initialization || (initialization && !service.IsInChangeState))
                                         {
                                             @if (service.IsRunning)
                                             {
@@ -93,7 +93,7 @@
                                 </td>
                                 <td>
                                     <div class="d-flex align-items-center">
-                                        @if (!initialization)
+                                        @if (!initialization || (initialization && !appPool.IsInChangeState))
                                         {
                                             @if (appPool.IsRunning)
                                             {
