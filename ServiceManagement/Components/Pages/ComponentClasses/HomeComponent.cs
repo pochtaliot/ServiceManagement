@@ -40,7 +40,7 @@ public class HomeComponent : ComponentBase
         {
             service.IsInChangeState = true;
             StateHasChanged();
-            service.Status = ServiceManager.GetServiceStatusAsync(server.Name, service.Name);
+            service.Status = ServiceManager.GetServiceStatus(server.Name, service.Name);
             service.IsInChangeState = false;
             StateHasChanged();
         }
@@ -56,9 +56,9 @@ public class HomeComponent : ComponentBase
             StateHasChanged();
 
             if (server.Location == ServerLocationType.Remote)
-                appPool.State = PowershellIISManager.GetAppPoolStatusAsync(server.Name, appPool);
+                appPool.State = PowershellIISManager.GetAppPoolStatus(server.Name, appPool);
             else
-                appPool.State = LocalIISManager.GetAppPoolStatusAsync(appPool);
+                appPool.State = LocalIISManager.GetAppPoolStatus(appPool);
 
             appPool.IsInChangeState = false;
             StateHasChanged();
@@ -70,9 +70,9 @@ public class HomeComponent : ComponentBase
         service.IsInChangeState = true;
         await Task.Yield();
 
-        ServiceManager.StartServiceAsync(serverName, service.Name, startupArguments);
+        ServiceManager.StartService(serverName, service.Name, startupArguments);
 
-        while (ServiceManager.GetServiceStatusAsync(serverName, service.Name) != ServiceControllerStatus.Running)
+        while (ServiceManager.GetServiceStatus(serverName, service.Name) != ServiceControllerStatus.Running)
             await Task.Delay(1000);
 
         service.Status = ServiceControllerStatus.Running;
@@ -85,9 +85,9 @@ public class HomeComponent : ComponentBase
         service.IsInChangeState = true;
         await Task.Yield();
 
-        ServiceManager.StopServiceAsync(serverName, service.Name);
+        ServiceManager.StopService(serverName, service.Name);
 
-        while (ServiceManager.GetServiceStatusAsync(serverName, service.Name) != ServiceControllerStatus.Stopped)
+        while (ServiceManager.GetServiceStatus(serverName, service.Name) != ServiceControllerStatus.Stopped)
             await Task.Delay(1000);
 
         service.Status = ServiceControllerStatus.Stopped;
@@ -95,64 +95,73 @@ public class HomeComponent : ComponentBase
         service.IsInChangeState = false;
     }
 
-    protected async Task StartAppPool(Server server, AppPool appPool)
+    protected async Task StartAppPoolAndRefreshStateAsync(Server server, AppPool appPool)
     {
         appPool.IsInChangeState = true;
         await Task.Yield();
 
-        if (server.Location == ServerLocationType.Remote)
+        try
         {
-            PowershellIISManager.StartAppPoolAsync(server.Name, appPool);
+            StartAppPool(server, appPool);
+            await RefreshAppPoolStateAfterStateChangeAsync(server, appPool, ObjectState.Started);
 
-            while (PowershellIISManager.GetAppPoolStatusAsync(server.Name, appPool) != ObjectState.Started)
-                await Task.Delay(1000);
+            appPool.State = ObjectState.Started;
         }
-        else
+        catch (Exception ex)
         {
+            Console.WriteLine(ex.Message);
+        }
+        finally
+        {
+            appPool.IsInChangeState = false;
+        }
+    }
+
+    private void StartAppPool(Server server, AppPool appPool)
+    {
+        if (server.Location == ServerLocationType.Remote)
+            PowershellIISManager.StartAppPool(server.Name, appPool);
+        else
             LocalIISManager.StartAppPoolAsync(appPool);
-
-            while (LocalIISManager.GetAppPoolStatusAsync(appPool) != ObjectState.Started)
-                await Task.Delay(1000);
-        }
-
-        appPool.State = ObjectState.Started;
-
-        appPool.IsInChangeState = false;
     }
 
-    protected async Task StopAppPool(Server server, AppPool appPool)
+    private async Task RefreshAppPoolStateAfterStateChangeAsync(Server server, AppPool appPool, ObjectState targetState)
+    {
+        if (server.Location == ServerLocationType.Remote)
+            while (PowershellIISManager.GetAppPoolStatus(server.Name, appPool) != targetState)
+                await Task.Delay(1000);
+        else
+            while (LocalIISManager.GetAppPoolStatus(appPool) != targetState)
+                await Task.Delay(1000);
+    }
+
+    protected async Task StopAppPoolAndRefreshStateAsync(Server server, AppPool appPool)
     {
         appPool.IsInChangeState = true;
         await Task.Yield();
 
-        if (server.Location == ServerLocationType.Remote)
+        try
         {
-            PowershellIISManager.StopAppPoolAsync(server.Name, appPool);
+            StopAppPool(server, appPool);
+            await RefreshAppPoolStateAfterStateChangeAsync(server, appPool, ObjectState.Stopped);
 
-            while (PowershellIISManager.GetAppPoolStatusAsync(server.Name, appPool) != ObjectState.Stopped)
-                await Task.Delay(1000);
+            appPool.State = ObjectState.Stopped;
         }
-        else
+        catch (Exception ex)
         {
-            LocalIISManager.StopAppPoolAsync(appPool);
-
-            while (LocalIISManager.GetAppPoolStatusAsync(appPool) != ObjectState.Stopped)
-                await Task.Delay(1000);
+            Console.WriteLine(ex.Message);
         }
-
-        appPool.State = ObjectState.Stopped;
-
-        appPool.IsInChangeState = false;
+        finally
+        {
+            appPool.IsInChangeState = false;
+        }
     }
 
-    protected ServiceControllerStatus GetServiceState(string serverName, Service service) =>
-        ServiceManager.GetServiceStatusAsync(serverName, service.Name);
-
-    protected ObjectState GetAppPoolState(Server server, AppPool appPool)
+    private void StopAppPool(Server server, AppPool appPool)
     {
         if (server.Location == ServerLocationType.Remote)
-            return PowershellIISManager.GetAppPoolStatusAsync(server.Name, appPool);
+            PowershellIISManager.StopAppPool(server.Name, appPool);
         else
-            return LocalIISManager.GetAppPoolStatusAsync(appPool);
+            LocalIISManager.StopAppPool(appPool);
     }
 }

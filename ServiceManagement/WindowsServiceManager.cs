@@ -5,14 +5,14 @@ namespace ServiceManagement;
 
 public interface IWindowsServiceManager
 {
-    void StartServiceAsync(string serverName, string serviceName, string? startupArguments = null);
-    void StopServiceAsync(string serverName, string serviceName);
-    ServiceControllerStatus GetServiceStatusAsync(string serverName, string serviceName);
+    void StartService(string serverName, string serviceName, string? startupArguments = null);
+    void StopService(string serverName, string serviceName);
+    ServiceControllerStatus GetServiceStatus(string serverName, string serviceName);
 }
 
 public class WindowsServiceManager : IWindowsServiceManager
 {
-    public void StartServiceAsync(string serverName, string serviceName, string? startupArguments = null)
+    public void StartService(string serverName, string serviceName, string? startupArguments = null)
     {
         if (string.IsNullOrEmpty(startupArguments))
         {
@@ -43,7 +43,7 @@ public class WindowsServiceManager : IWindowsServiceManager
         }
     }
 
-    public void StopServiceAsync(string serverName, string serviceName)
+    public void StopService(string serverName, string serviceName)
     {
         using var sc = new ServiceController(serviceName, serverName);
         if (sc.Status != ServiceControllerStatus.Stopped)
@@ -53,7 +53,7 @@ public class WindowsServiceManager : IWindowsServiceManager
         }
     }
 
-    public ServiceControllerStatus GetServiceStatusAsync(string serverName, string serviceName)
+    public ServiceControllerStatus GetServiceStatus(string serverName, string serviceName)
     {
         using var sc = new ServiceController(serviceName, serverName);
         return sc.Status;

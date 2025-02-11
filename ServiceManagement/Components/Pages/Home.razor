@@ -97,11 +97,11 @@
                                         {
                                             @if (appPool.IsRunning)
                                             {
-                                                <i class="bi bi-stop-fill color-red icon-button-md" @onclick="() => StopAppPool(server, appPool)"></i>
+                                                <i class="bi bi-stop-fill color-red icon-button-md" @onclick="() => StopAppPoolAndRefreshStateAsync(server, appPool)"></i>
                                             }
                                             else
                                             {
-                                                <i class="bi bi-play-fill color-green icon-button-md" @onclick="() => StartAppPool(server, appPool)"></i>
+                                                <i class="bi bi-play-fill color-green icon-button-md" @onclick="() => StartAppPoolAndRefreshStateAsync(server, appPool)"></i>
                                             }
                                         }
                                         <div class="spinner-border margin-left-10 @(appPool.IsInChangeState ? "" : "d-none")" role="status">

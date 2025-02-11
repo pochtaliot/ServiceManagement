@@ -5,24 +5,24 @@ namespace ServiceManagement;
 
 public interface IPowershellIISManager
 {
-    void StartAppPoolAsync(string serverName, AppPool appPool);
-    void StopAppPoolAsync(string serverName, AppPool appPool);
-    ObjectState GetAppPoolStatusAsync(string serverName, AppPool appPool);
+    void StartAppPool(string serverName, AppPool appPool);
+    void StopAppPool(string serverName, AppPool appPool);
+    ObjectState GetAppPoolStatus(string serverName, AppPool appPool);
 }
 
 public class PowershellIISManager : IPowershellIISManager
 {
-    public void StartAppPoolAsync(string serverName, AppPool appPool)
+    public void StartAppPool(string serverName, AppPool appPool)
     {
         ExecutePowerShellCommand(serverName, $"Start-WebAppPool -Name '{appPool.Name}'");
     }
 
-    public void StopAppPoolAsync(string serverName, AppPool appPool)
+    public void StopAppPool(string serverName, AppPool appPool)
     {
         ExecutePowerShellCommand(serverName, $"Stop-WebAppPool -Name '{appPool.Name}'");
     }
 
-    public ObjectState GetAppPoolStatusAsync(string serverName, AppPool appPool)
+    public ObjectState GetAppPoolStatus(string serverName, AppPool appPool)
     {
         var result = ExecutePowerShellCommand(serverName, $"(Get-WebAppPoolState -Name '{appPool.Name}').Value");
 

@@ -5,8 +5,8 @@ namespace ServiceManagement;
 public interface ILocalIISManager
 {
     void StartAppPoolAsync(AppPool appPool);
-    void StopAppPoolAsync(AppPool appPool);
-    ObjectState GetAppPoolStatusAsync(AppPool appPool);
+    void StopAppPool(AppPool appPool);
+    ObjectState GetAppPoolStatus(AppPool appPool);
 }
 
 public class LocalIISManager : ILocalIISManager
@@ -21,7 +21,7 @@ public class LocalIISManager : ILocalIISManager
         }
     }
 
-    public void StopAppPoolAsync(AppPool appPool)
+    public void StopAppPool(AppPool appPool)
     {
         using var serverManager = new ServerManager();
         var serverAppPool = serverManager.ApplicationPools[appPool.Name];
@@ -31,7 +31,7 @@ public class LocalIISManager : ILocalIISManager
         }
     }
 
-    public ObjectState GetAppPoolStatusAsync(AppPool appPool)
+    public ObjectState GetAppPoolStatus(AppPool appPool)
     {
         using var serverManager = new ServerManager();
         var serverAppPool = serverManager.ApplicationPools[appPool.Name];
