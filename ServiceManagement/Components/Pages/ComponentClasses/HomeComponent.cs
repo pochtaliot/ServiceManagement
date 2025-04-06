@@ -2,7 +2,6 @@
 using Microsoft.Extensions.Options;
 using Microsoft.Web.Administration;
 using ServiceManagement.Services;
-using System.ServiceProcess;
 
 namespace ServiceManagement.Components.Pages.ComponentClasses;
 
@@ -24,24 +23,11 @@ public class HomeComponent : ComponentBase
 
             foreach (var server in Config.Value.Servers)
             {
-                await RefreshServices(server);
+                //await RefreshServices(server);
                 await RefreshAppPools(server);
             }
 
             initialization = false;
-            StateHasChanged();
-        }
-    }
-    protected async Task RefreshServices(Server server)
-    {
-        await Task.Yield();
-
-        foreach (var service in server.Services)
-        {
-            service.IsInChangeState = true;
-            StateHasChanged();
-            service.Status = ServiceManager.GetServiceStatus(server.Name, service.Name);
-            service.IsInChangeState = false;
             StateHasChanged();
         }
     }
@@ -63,36 +49,6 @@ public class HomeComponent : ComponentBase
             appPool.IsInChangeState = false;
             StateHasChanged();
         }
-    }
-
-    protected async Task StartService(string serverName, Service service, string? startupArguments)
-    {
-        service.IsInChangeState = true;
-        await Task.Yield();
-
-        ServiceManager.StartService(serverName, service.Name, startupArguments);
-
-        while (ServiceManager.GetServiceStatus(serverName, service.Name) != ServiceControllerStatus.Running)
-            await Task.Delay(1000);
-
-        service.Status = ServiceControllerStatus.Running;
-
-        service.IsInChangeState = false;
-    }
-
-    protected async Task StopService(string serverName, Service service)
-    {
-        service.IsInChangeState = true;
-        await Task.Yield();
-
-        ServiceManager.StopService(serverName, service.Name);
-
-        while (ServiceManager.GetServiceStatus(serverName, service.Name) != ServiceControllerStatus.Stopped)
-            await Task.Delay(1000);
-
-        service.Status = ServiceControllerStatus.Stopped;
-
-        service.IsInChangeState = false;
     }
 
     protected async Task StartAppPoolAndRefreshStateAsync(Server server, AppPool appPool)

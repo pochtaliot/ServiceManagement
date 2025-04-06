@@ -2,6 +2,7 @@
 @inherits ComponentClasses.HomeComponent
 @rendermode InteractiveServer
 @using Microsoft.Web.Administration
+@using ServiceManagement.Components.Pages.Partials.Services
 
 <h3 class="text-primary">Service and IIS Manager</h3>
 
@@ -19,51 +20,7 @@
         <div class="card-body">
             @if (server.Services.Any())
             {
-                <div class="d-flex align-items-center justify-content-between">
-                    <h5 class="text-secondary">Windows Services</h5>
-                    <i class="bi bi-arrow-clockwise icon-button-md" @onclick="() => RefreshServices(server)"></i>
-                </div>
-                <table class="table-striped table-hover table table-fixed">
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var service in server.Services)
-                        {
-                            <tr>
-                                <td class="align-middle">@service.Name</td>
-                                <td class="align-middle">
-                                    @if (!service.IsInChangeState)
-                                    {
-                                        <span class="service-status @(service.IsRunning ? "running-status" : "stopped-status")">@(service.IsRunning ? "Running" : "Stopped")</span>
-                                    }
-                                </td>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        @if (!initialization || (initialization && !service.IsInChangeState))
-                                        {
-                                            @if (service.IsRunning)
-                                            {
-                                                <i class="bi bi-stop-fill color-red icon-button-md" @onclick="() => StopService(server.Name, service)"></i>
-                                            }
-                                            else
-                                            {
-                                                <i class="bi bi-play-fill color-green icon-button-md" @onclick="() => StartService(server.Name, service, service.StartupArguments)"></i>
-                                            }
-                                        }
-                                        <div class="spinner-border margin-left-10 @(service.IsInChangeState ? "" : "d-none")" role="status">
-                                            <span class="sr-only"></span>
-                                        </div>
-                                    </div>
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
+                <ServicesComponent Server="@server"></ServicesComponent>
             }
 
             @if (server.AppPools.Any())
