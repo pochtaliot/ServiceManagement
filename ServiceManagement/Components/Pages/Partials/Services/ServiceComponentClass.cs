@@ -3,7 +3,7 @@ using System.ServiceProcess;
 
 namespace ServiceManagement.Components.Pages.Partials.Services;
 
-public class ServicesComponentClass : ComponentBase
+public class ServiceComponentClass : ComponentBase
 {
     [Inject] protected IWindowsServiceManager ServiceManager { get; set; } = null!;
     [Parameter] public Server Server { get; set; } = null!;

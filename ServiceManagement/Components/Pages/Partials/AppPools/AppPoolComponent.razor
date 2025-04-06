@@ -1,0 +1,48 @@
+﻿@inherits AppPoolComponentClass
+@rendermode InteractiveServer
+
+<div class="d-flex align-items-center justify-content-between">
+    <h5 class="text-secondary">IIS App Pools</h5>
+    <i class="bi bi-arrow-clockwise icon-button-md" @onclick="() => RefreshAppPools()"></i>
+</div>
+<table class="table-striped table-hover table table-fixed">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Status</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var appPool in Server.AppPools)
+        {
+            <tr>
+                <td class="align-middle">@appPool.Name</td>
+                <td class="align-middle">
+                    @if (!appPool.IsInChangeState)
+                    {
+                        <span class="service-status @(appPool.IsRunning ? "running-status" : "stopped-status")">@(appPool.IsRunning ? "Running" : "Stopped")</span>
+                    }
+                </td>
+                <td>
+                    <div class="d-flex align-items-center">
+                        @if (!initialization || (initialization && !appPool.IsInChangeState))
+                        {
+                            @if (appPool.IsRunning)
+                            {
+                                <i class="bi bi-stop-fill color-red icon-button-md" @onclick="() => StopAppPoolAndRefreshStateAsync(appPool)"></i>
+                            }
+                            else
+                            {
+                                <i class="bi bi-play-fill color-green icon-button-md" @onclick="() => StartAppPoolAndRefreshStateAsync(appPool)"></i>
+                            }
+                        }
+                        <div class="spinner-border margin-left-10 @(appPool.IsInChangeState ? "" : "d-none")" role="status">
+                            <span class="sr-only"></span>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

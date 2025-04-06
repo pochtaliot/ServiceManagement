@@ -2,6 +2,7 @@
 @inherits ComponentClasses.HomeComponent
 @rendermode InteractiveServer
 @using Microsoft.Web.Administration
+@using ServiceManagement.Components.Pages.Partials.AppPools
 @using ServiceManagement.Components.Pages.Partials.Services
 
 <h3 class="text-primary">Service and IIS Manager</h3>
@@ -20,56 +21,11 @@
         <div class="card-body">
             @if (server.Services.Any())
             {
-                <ServicesComponent Server="@server"></ServicesComponent>
+                <ServiceComponent Server="@server"></ServiceComponent>
             }
-
             @if (server.AppPools.Any())
             {
-                <div class="d-flex align-items-center justify-content-between">
-                    <h5 class="text-secondary">IIS App Pools</h5>
-                    <i class="bi bi-arrow-clockwise icon-button-md" @onclick="() => RefreshAppPools(server)"></i>
-                </div>
-                <table class="table-striped table-hover table table-fixed">
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var appPool in server.AppPools)
-                        {
-                            <tr>
-                                <td class="align-middle">@appPool.Name</td>
-                                <td class="align-middle">
-                                    @if (!appPool.IsInChangeState)
-                                    {
-                                        <span class="service-status @(appPool.IsRunning ? "running-status" : "stopped-status")">@(appPool.IsRunning ? "Running" : "Stopped")</span>
-                                    }
-                                </td>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        @if (!initialization || (initialization && !appPool.IsInChangeState))
-                                        {
-                                            @if (appPool.IsRunning)
-                                            {
-                                                <i class="bi bi-stop-fill color-red icon-button-md" @onclick="() => StopAppPoolAndRefreshStateAsync(server, appPool)"></i>
-                                            }
-                                            else
-                                            {
-                                                <i class="bi bi-play-fill color-green icon-button-md" @onclick="() => StartAppPoolAndRefreshStateAsync(server, appPool)"></i>
-                                            }
-                                        }
-                                        <div class="spinner-border margin-left-10 @(appPool.IsInChangeState ? "" : "d-none")" role="status">
-                                            <span class="sr-only"></span>
-                                        </div>
-                                    </div>
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
+                <AppPoolComponent Server="@server"></AppPoolComponent>
             }
         </div>
     </div>
