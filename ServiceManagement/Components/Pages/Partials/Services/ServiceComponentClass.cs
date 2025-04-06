@@ -23,8 +23,6 @@ public class ServiceComponentClass : ComponentBase
 
     protected async Task RefreshServices()
     {
-        await Task.Yield();
-
         foreach (var service in Server.Services)
         {
             service.IsInChangeState = true;
@@ -33,6 +31,8 @@ public class ServiceComponentClass : ComponentBase
             service.IsInChangeState = false;
             StateHasChanged();
         }
+
+        await Task.CompletedTask;
     }
 
     protected async Task StartService(string serverName, Service service, string? startupArguments)

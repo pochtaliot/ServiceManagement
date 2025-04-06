@@ -24,8 +24,6 @@ public class AppPoolComponentClass : ComponentBase
 
     protected async Task RefreshAppPools()
     {
-        await Task.Yield();
-
         foreach (var appPool in Server.AppPools)
         {
             appPool.IsInChangeState = true;
@@ -39,6 +37,8 @@ public class AppPoolComponentClass : ComponentBase
             appPool.IsInChangeState = false;
             StateHasChanged();
         }
+
+        await Task.CompletedTask;
     }
 
     protected async Task StartAppPoolAndRefreshStateAsync(AppPool appPool)
