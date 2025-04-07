@@ -1,12 +1,13 @@
 ﻿using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.Options;
 using System.ServiceProcess;
 
 namespace ServiceManagement.Components.Pages.Partials.Services;
 
 public class ServiceComponentClass : ComponentBase
 {
+    [Inject] protected IOptionsSnapshot<ServiceConfig> Config { get; set; } = null!;
     [Inject] protected IWindowsServiceManager ServiceManager { get; set; } = null!;
-    [Parameter] public Server Server { get; set; } = null!;
     protected bool initialization { get; set; } = true;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -15,19 +16,22 @@ public class ServiceComponentClass : ComponentBase
         {
             initialization = true;
             StateHasChanged();
-            await RefreshServices();
+            foreach (var server in Config.Value.Servers)
+            {
+                await RefreshServices(server); 
+            }
             initialization = false;
             StateHasChanged();
         }
     }
 
-    protected async Task RefreshServices()
+    protected async Task RefreshServices(Server server)
     {
-        foreach (var service in Server.Services)
+        foreach (var service in server.Services)
         {
             service.IsInChangeState = true;
             StateHasChanged();
-            service.Status = ServiceManager.GetServiceStatus(Server.Name, service.Name);
+            service.Status = ServiceManager.GetServiceStatus(server.Name, service.Name);
             service.IsInChangeState = false;
             StateHasChanged();
         }

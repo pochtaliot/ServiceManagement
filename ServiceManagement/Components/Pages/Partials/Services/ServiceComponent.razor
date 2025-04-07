@@ -1,48 +1,62 @@
 ﻿@inherits ServiceComponentClass
 @rendermode InteractiveServer
 
-<div class="d-flex align-items-center justify-content-between">
-    <h5 class="text-secondary">Windows Services</h5>
-    <i class="bi bi-arrow-clockwise icon-button-md" @onclick="() => RefreshServices()"></i>
-</div>
-<table class="table-striped table-hover table table-fixed">
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Status</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var service in Server.Services)
-        {
-            <tr>
-                <td class="align-middle">@service.Name</td>
-                <td class="align-middle">
-                    @if (!service.IsInChangeState)
+@foreach (var server in Config.Value.Servers)
+{
+    @if (server.Services.Any())
+    {
+    <div class="card my-3">
+        <div class="card-header d-flex align-items-center justify-content-between">
+            <h4 class="card-title">@server.Alias (@server.Name)</h4>
+            @* <i class="bi bi-arrow-clockwise icon-button-md"></i> *@
+        </div>
+        <div class="card-body">
+            <div class="d-flex align-items-center justify-content-between">
+                <h5 class="text-secondary">Windows Services</h5>
+                <i class="bi bi-arrow-clockwise icon-button-md" @onclick="() => RefreshServices(server)"></i>
+            </div>
+            <table class="table-striped table-hover table table-fixed">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var service in server.Services)
                     {
-                        <span class="service-status @(service.IsRunning ? "running-status" : "stopped-status")">@(service.IsRunning ? "Running" : "Stopped")</span>
+                        <tr>
+                            <td class="align-middle">@service.Name</td>
+                            <td class="align-middle">
+                                @if (!service.IsInChangeState)
+                                {
+                                    <span class="service-status @(service.IsRunning ? "running-status" : "stopped-status")">@(service.IsRunning ? "Running" : "Stopped")</span>
+                                }
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    @if (!initialization || (initialization && !service.IsInChangeState))
+                                    {
+                                        @if (service.IsRunning)
+                                        {
+                                            <i class="bi bi-stop-fill color-red icon-button-md" @onclick="() => StopService(server.Name, service)"></i>
+                                        }
+                                        else
+                                        {
+                                            <i class="bi bi-play-fill color-green icon-button-md" @onclick="() => StartService(server.Name, service, service.StartupArguments)"></i>
+                                        }
+                                    }
+                                    <div class="spinner-border margin-left-10 @(service.IsInChangeState ? "" : "d-none")" role="status">
+                                        <span class="sr-only"></span>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
                     }
-                </td>
-                <td>
-                    <div class="d-flex align-items-center">
-                        @if (!initialization || (initialization && !service.IsInChangeState))
-                        {
-                            @if (service.IsRunning)
-                            {
-                                <i class="bi bi-stop-fill color-red icon-button-md" @onclick="() => StopService(Server.Name, service)"></i>
-                            }
-                            else
-                            {
-                                <i class="bi bi-play-fill color-green icon-button-md" @onclick="() => StartService(Server.Name, service, service.StartupArguments)"></i>
-                            }
-                        }
-                        <div class="spinner-border margin-left-10 @(service.IsInChangeState ? "" : "d-none")" role="status">
-                            <span class="sr-only"></span>
-                        </div>
-                    </div>
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    }
+}

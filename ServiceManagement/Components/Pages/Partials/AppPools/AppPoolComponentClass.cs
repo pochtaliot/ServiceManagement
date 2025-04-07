@@ -1,13 +1,14 @@
 ﻿using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.Options;
 using Microsoft.Web.Administration;
 
 namespace ServiceManagement.Components.Pages.Partials.AppPools;
 
 public class AppPoolComponentClass : ComponentBase
 {
+    [Inject] protected IOptionsSnapshot<ServiceConfig> Config { get; set; } = null!;
     [Inject] protected IPowershellIISManager PowershellIISManager { get; set; } = null!;
     [Inject] protected ILocalIISManager LocalIISManager { get; set; } = null!;
-    [Parameter] public Server Server { get; set; } = null!;
     protected bool initialization { get; set; } = true;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -16,21 +17,24 @@ public class AppPoolComponentClass : ComponentBase
         {
             initialization = true;
             StateHasChanged();
-            await RefreshAppPools();
+            foreach (var server in Config.Value.Servers)
+            {
+                await RefreshAppPools(server); 
+            }
             initialization = false;
             StateHasChanged();
         }
     }
 
-    protected async Task RefreshAppPools()
+    protected async Task RefreshAppPools(Server server)
     {
-        foreach (var appPool in Server.AppPools)
+        foreach (var appPool in server.AppPools)
         {
             appPool.IsInChangeState = true;
             StateHasChanged();
 
-            if (Server.Location == ServerLocationType.Remote)
-                appPool.State = PowershellIISManager.GetAppPoolStatus(Server.Name, appPool);
+            if (server.Location == ServerLocationType.Remote)
+                appPool.State = PowershellIISManager.GetAppPoolStatus(server.Name, appPool);
             else
                 appPool.State = LocalIISManager.GetAppPoolStatus(appPool);
 
@@ -41,15 +45,15 @@ public class AppPoolComponentClass : ComponentBase
         await Task.CompletedTask;
     }
 
-    protected async Task StartAppPoolAndRefreshStateAsync(AppPool appPool)
+    protected async Task StartAppPoolAndRefreshStateAsync(Server server, AppPool appPool)
     {
         appPool.IsInChangeState = true;
         await Task.Yield();
 
         try
         {
-            StartAppPool(Server, appPool);
-            await RefreshAppPoolStateAfterStateChangeAsync(appPool, ObjectState.Started);
+            StartAppPool(server, appPool);
+            await RefreshAppPoolStateAfterStateChangeAsync(server, appPool, ObjectState.Started);
 
             appPool.State = ObjectState.Started;
         }
@@ -63,15 +67,15 @@ public class AppPoolComponentClass : ComponentBase
         }
     }
 
-    protected async Task StopAppPoolAndRefreshStateAsync(AppPool appPool)
+    protected async Task StopAppPoolAndRefreshStateAsync(Server server, AppPool appPool)
     {
         appPool.IsInChangeState = true;
         await Task.Yield();
 
         try
         {
-            StopAppPool(Server, appPool);
-            await RefreshAppPoolStateAfterStateChangeAsync(appPool, ObjectState.Stopped);
+            StopAppPool(server, appPool);
+            await RefreshAppPoolStateAfterStateChangeAsync(server, appPool, ObjectState.Stopped);
 
             appPool.State = ObjectState.Stopped;
         }
@@ -93,10 +97,10 @@ public class AppPoolComponentClass : ComponentBase
             LocalIISManager.StopAppPool(appPool);
     }
 
-    private async Task RefreshAppPoolStateAfterStateChangeAsync(AppPool appPool, ObjectState targetState)
+    private async Task RefreshAppPoolStateAfterStateChangeAsync(Server server, AppPool appPool, ObjectState targetState)
     {
-        if (Server.Location == ServerLocationType.Remote)
-            while (PowershellIISManager.GetAppPoolStatus(Server.Name, appPool) != targetState)
+        if (server.Location == ServerLocationType.Remote)
+            while (PowershellIISManager.GetAppPoolStatus(server.Name, appPool) != targetState)
                 await Task.Delay(1000);
         else
             while (LocalIISManager.GetAppPoolStatus(appPool) != targetState)
@@ -105,8 +109,8 @@ public class AppPoolComponentClass : ComponentBase
 
     private void StartAppPool(Server server, AppPool appPool)
     {
-        if (Server.Location == ServerLocationType.Remote)
-            PowershellIISManager.StartAppPool(Server.Name, appPool);
+        if (server.Location == ServerLocationType.Remote)
+            PowershellIISManager.StartAppPool(server.Name, appPool);
         else
             LocalIISManager.StartAppPoolAsync(appPool);
     }
