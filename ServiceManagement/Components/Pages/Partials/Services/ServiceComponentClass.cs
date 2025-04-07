@@ -16,10 +16,13 @@ public class ServiceComponentClass : ComponentBase
         {
             initialization = true;
             StateHasChanged();
-            foreach (var server in Config.Value.Servers)
-            {
-                await RefreshServices(server); 
-            }
+
+            var refreshTasks = Config.Value.Servers
+            .Select(server => RefreshServices(server))
+            .ToList();
+
+            await Task.WhenAll(refreshTasks);
+
             initialization = false;
             StateHasChanged();
         }

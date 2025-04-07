@@ -17,10 +17,13 @@ public class AppPoolComponentClass : ComponentBase
         {
             initialization = true;
             StateHasChanged();
-            foreach (var server in Config.Value.Servers)
-            {
-                await RefreshAppPools(server); 
-            }
+
+            var refreshTasks = Config.Value.Servers
+                .Select(server => RefreshAppPools(server))
+                .ToList();
+
+            await Task.WhenAll(refreshTasks);
+
             initialization = false;
             StateHasChanged();
         }
