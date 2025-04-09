@@ -20,8 +20,8 @@ public class HomeComponent : ComponentBase
             InitializationState.On = true;
             StateHasChanged();
 
-            var loadServicesTask = LoadAllServices();
-            var loadAppPoolsTask = LoadAllAppPools();
+            var loadServicesTask = Task.Run(() => LoadAllServices());
+            var loadAppPoolsTask = Task.Run(() => LoadAllAppPools());
 
             await Task.WhenAll(loadServicesTask, loadAppPoolsTask);
 
@@ -30,11 +30,9 @@ public class HomeComponent : ComponentBase
         }
     }
 
-    private async Task LoadAllServices()
+    private void LoadAllServices()
     {
-        var serviceRefreshTasks = Config.Value.Servers
-        .Where(server => server.Services.Any())
-        .Select(async server =>
+        foreach (var server in Config.Value.Servers.Where(s => s.Services.Any()))
         {
             foreach (var service in server.Services)
             {
@@ -42,10 +40,7 @@ public class HomeComponent : ComponentBase
                 service.Status = ServiceManager.GetServiceStatus(server.Name, service.Name);
                 service.IsInChangeState = false;
             }
-            await Task.Yield(); // Ensure async context
-        }).ToList();
-
-        await Task.WhenAll(serviceRefreshTasks);
+        }
     }
 
     protected async Task RefreshServices(Server server)
@@ -62,11 +57,9 @@ public class HomeComponent : ComponentBase
         await Task.CompletedTask;
     }
 
-    private async Task LoadAllAppPools()
+    private void LoadAllAppPools()
     {
-        var appPoolRefreshTasks = Config.Value.Servers
-        .Where(server => server.AppPools.Any())
-        .Select(async server =>
+        foreach (var server in Config.Value.Servers.Where(s => s.AppPools.Any()))
         {
             foreach (var appPool in server.AppPools)
             {
@@ -76,10 +69,7 @@ public class HomeComponent : ComponentBase
                     : LocalIISManager.GetAppPoolStatus(appPool);
                 appPool.IsInChangeState = false;
             }
-            await Task.Yield(); // Ensure async context
-        }).ToList();
-
-        await Task.WhenAll(appPoolRefreshTasks);
+        }
     }
 
     protected async Task RefreshAppPools(Server server)
