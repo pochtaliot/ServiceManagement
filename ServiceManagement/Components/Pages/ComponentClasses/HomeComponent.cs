@@ -32,11 +32,20 @@ public class HomeComponent : ComponentBase
 
     private async Task LoadAllServices()
     {
-        var refreshTasks = Config.Value.Servers
-            .Select(server => RefreshServices(server))
-            .ToList();
+        var serviceRefreshTasks = Config.Value.Servers
+        .Where(server => server.Services.Any())
+        .Select(async server =>
+        {
+            foreach (var service in server.Services)
+            {
+                service.IsInChangeState = true;
+                service.Status = ServiceManager.GetServiceStatus(server.Name, service.Name);
+                service.IsInChangeState = false;
+            }
+            await Task.Yield(); // Ensure async context
+        }).ToList();
 
-        await Task.WhenAll(refreshTasks);
+        await Task.WhenAll(serviceRefreshTasks);
     }
 
     protected async Task RefreshServices(Server server)
@@ -55,11 +64,22 @@ public class HomeComponent : ComponentBase
 
     private async Task LoadAllAppPools()
     {
-        var refreshTasks = Config.Value.Servers
-                .Select(server => RefreshAppPools(server))
-                .ToList();
+        var appPoolRefreshTasks = Config.Value.Servers
+        .Where(server => server.AppPools.Any())
+        .Select(async server =>
+        {
+            foreach (var appPool in server.AppPools)
+            {
+                appPool.IsInChangeState = true;
+                appPool.State = server.Location == ServerLocationType.Remote
+                    ? PowershellIISManager.GetAppPoolStatus(server.Name, appPool)
+                    : LocalIISManager.GetAppPoolStatus(appPool);
+                appPool.IsInChangeState = false;
+            }
+            await Task.Yield(); // Ensure async context
+        }).ToList();
 
-        await Task.WhenAll(refreshTasks);
+        await Task.WhenAll(appPoolRefreshTasks);
     }
 
     protected async Task RefreshAppPools(Server server)
