@@ -2,5 +2,5 @@
 
 public class InitializationState
 {
-    public bool On { get; set; }
+    public bool On { get; set; } = true;
 }

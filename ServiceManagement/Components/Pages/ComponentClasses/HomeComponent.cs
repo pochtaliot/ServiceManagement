@@ -25,7 +25,11 @@ public class HomeComponent : ComponentBase
 
             await Task.WhenAll(loadServicesTask, loadAppPoolsTask);
 
-            InitializationState.On = false;
+            await InvokeAsync(() =>
+            {
+                InitializationState.On = false;
+                StateHasChanged();
+            });
             StateHasChanged(); 
         }
     }
@@ -36,9 +40,17 @@ public class HomeComponent : ComponentBase
         {
             foreach (var service in server.Services)
             {
-                service.IsInChangeState = true;
-                service.Status = ServiceManager.GetServiceStatus(server.Name, service.Name);
-                service.IsInChangeState = false;
+                var status = ServiceManager.GetServiceStatus(server.Name, service.Name);
+
+                // Use InvokeAsync for UI-bound updates
+                InvokeAsync(() =>
+                {
+                    service.IsInChangeState = true;
+                    StateHasChanged();
+                    service.Status = status;
+                    service.IsInChangeState = false;
+                    StateHasChanged();
+                }).Wait(); // Block until UI update completes
             }
         }
     }
@@ -63,11 +75,18 @@ public class HomeComponent : ComponentBase
         {
             foreach (var appPool in server.AppPools)
             {
-                appPool.IsInChangeState = true;
-                appPool.State = server.Location == ServerLocationType.Remote
+                var state = server.Location == ServerLocationType.Remote
                     ? PowershellIISManager.GetAppPoolStatus(server.Name, appPool)
                     : LocalIISManager.GetAppPoolStatus(appPool);
-                appPool.IsInChangeState = false;
+
+                InvokeAsync(() =>
+                {
+                    appPool.IsInChangeState = true;
+                    StateHasChanged();
+                    appPool.State = state;
+                    appPool.IsInChangeState = false;
+                    StateHasChanged();
+                }).Wait();
             }
         }
     }
