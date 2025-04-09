@@ -1,32 +1,14 @@
 ﻿using Microsoft.AspNetCore.Components;
-using Microsoft.Extensions.Options;
+using ServiceManagement.Components.Pages.ComponentClasses;
 using System.ServiceProcess;
 
 namespace ServiceManagement.Components.Pages.Partials.Services;
 
 public class ServiceComponentClass : ComponentBase
 {
-    [Inject] protected IOptionsSnapshot<ServiceConfig> Config { get; set; } = null!;
     [Inject] protected IWindowsServiceManager ServiceManager { get; set; } = null!;
-    protected bool initialization { get; set; } = true;
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            initialization = true;
-            StateHasChanged();
-
-            var refreshTasks = Config.Value.Servers
-            .Select(server => RefreshServices(server))
-            .ToList();
-
-            await Task.WhenAll(refreshTasks);
-
-            initialization = false;
-            StateHasChanged();
-        }
-    }
+    [Parameter] public IEnumerable<Server> Servers { get; set; } = Enumerable.Empty<Server>();
+    [Parameter] public InitializationState InitializationState { get; set; }
 
     protected async Task RefreshServices(Server server)
     {

@@ -1,33 +1,15 @@
 ﻿using Microsoft.AspNetCore.Components;
-using Microsoft.Extensions.Options;
 using Microsoft.Web.Administration;
+using ServiceManagement.Components.Pages.ComponentClasses;
 
 namespace ServiceManagement.Components.Pages.Partials.AppPools;
 
 public class AppPoolComponentClass : ComponentBase
 {
-    [Inject] protected IOptionsSnapshot<ServiceConfig> Config { get; set; } = null!;
     [Inject] protected IPowershellIISManager PowershellIISManager { get; set; } = null!;
     [Inject] protected ILocalIISManager LocalIISManager { get; set; } = null!;
-    protected bool initialization { get; set; } = true;
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            initialization = true;
-            StateHasChanged();
-
-            var refreshTasks = Config.Value.Servers
-                .Select(server => RefreshAppPools(server))
-                .ToList();
-
-            await Task.WhenAll(refreshTasks);
-
-            initialization = false;
-            StateHasChanged();
-        }
-    }
+    [Parameter] public IEnumerable<Server> Servers { get; set; } = Enumerable.Empty<Server>();
+    [Parameter] public InitializationState InitializationState { get; set; }
 
     protected async Task RefreshAppPools(Server server)
     {

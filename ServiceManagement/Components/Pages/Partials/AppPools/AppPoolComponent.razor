@@ -1,7 +1,7 @@
 ﻿@inherits AppPoolComponentClass
 @rendermode InteractiveServer
 
-@foreach (var server in Config.Value.Servers)
+@foreach (var server in Servers)
 {
     @if (server.AppPools.Any())
     {
@@ -36,7 +36,7 @@
                             </td>
                             <td>
                                 <div class="d-flex align-items-center">
-                                    @if (!initialization || (initialization && !appPool.IsInChangeState))
+                                        @if (!InitializationState.On || (InitializationState.On && !appPool.IsInChangeState))
                                     {
                                         @if (appPool.IsRunning)
                                         {

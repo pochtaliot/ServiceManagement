@@ -1,7 +1,7 @@
 ﻿@inherits ServiceComponentClass
 @rendermode InteractiveServer
 
-@foreach (var server in Config.Value.Servers)
+@foreach (var server in Servers)
 {
     @if (server.Services.Any())
     {
@@ -36,7 +36,7 @@
                             </td>
                             <td>
                                 <div class="d-flex align-items-center">
-                                    @if (!initialization || (initialization && !service.IsInChangeState))
+                                        @if (!InitializationState.On || (InitializationState.On && !service.IsInChangeState))
                                     {
                                         @if (service.IsRunning)
                                         {

@@ -12,9 +12,6 @@
 </div>
 
 <div class="d-flex">
-    @if (componentsLoaded)
-    {
-        <div><ServiceComponent></ServiceComponent></div>
-        <div><AppPoolComponent></AppPoolComponent></div>
-    }
+    <div><ServiceComponent Servers="@Config.Value.Servers" InitializationState="InitializationState"></ServiceComponent></div>
+    <div><AppPoolComponent Servers="@Config.Value.Servers" InitializationState="InitializationState"></AppPoolComponent></div>
 </div>
