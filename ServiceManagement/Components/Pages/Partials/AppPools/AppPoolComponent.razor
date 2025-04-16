@@ -34,7 +34,7 @@
                                     <span class="service-status @(appPool.IsRunning ? "running-status" : "stopped-status")">@(appPool.IsRunning ? "Running" : "Stopped")</span>
                                 }
                             </td>
-                            <td>
+                            <td class="align-middle">
                                 <div class="d-flex align-items-center">
                                         @if (!InitializationState.On || (InitializationState.On && !appPool.IsInChangeState))
                                     {

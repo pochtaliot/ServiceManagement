@@ -34,7 +34,7 @@
                                     <span class="service-status @(service.IsRunning ? "running-status" : "stopped-status")">@(service.IsRunning ? "Running" : "Stopped")</span>
                                 }
                             </td>
-                            <td>
+                            <td class="align-middle">
                                 <div class="d-flex align-items-center">
                                         @if (!InitializationState.On || (InitializationState.On && !service.IsInChangeState))
                                     {

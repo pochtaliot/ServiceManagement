@@ -1,0 +1,3 @@
+﻿.bi::before, [class*=" bi-"]::before, [class^=bi-]::before {
+    display: flex;
+}
