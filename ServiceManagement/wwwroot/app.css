@@ -129,3 +129,7 @@ h1:focus {
 .table > :not(caption) > * > * {
     padding: .2rem .5rem;
 }
+
+.width-pt {
+    width: 100%;
+}
