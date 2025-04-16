@@ -9,7 +9,7 @@ public class AppPoolComponentClass : ComponentBase
     [Inject] protected IPowershellIISManager PowershellIISManager { get; set; } = null!;
     [Inject] protected ILocalIISManager LocalIISManager { get; set; } = null!;
     [Parameter] public IEnumerable<Server> Servers { get; set; } = Enumerable.Empty<Server>();
-    [Parameter] public InitializationState InitializationState { get; set; }
+    [Parameter] public required InitializationState InitializationState { get; set; }
 
     protected async Task RefreshAppPools(Server server)
     {

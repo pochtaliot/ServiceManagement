@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.Options;
 using ServiceManagement.Services;
+using System.Threading.Tasks;
 
 namespace ServiceManagement.Components.Pages.ComponentClasses;
 
@@ -30,28 +31,38 @@ public class HomeComponent : ComponentBase
                 InitializationState.On = false;
                 StateHasChanged();
             });
+
             StateHasChanged(); 
         }
     }
 
-    private void LoadAllServices()
+    private async Task LoadAllServices()
     {
+        var loadServerServicesTasks = new List<Task>();
+
         foreach (var server in Config.Value.Servers.Where(s => s.Services.Any()))
         {
-            foreach (var service in server.Services)
-            {
-                var status = ServiceManager.GetServiceStatus(server.Name, service.Name);
+            loadServerServicesTasks.Add(Task.Run(() => LoadServerServices(server)));
+        }
 
-                // Use InvokeAsync for UI-bound updates
-                InvokeAsync(() =>
-                {
-                    service.IsInChangeState = true;
-                    StateHasChanged();
-                    service.Status = status;
-                    service.IsInChangeState = false;
-                    StateHasChanged();
-                }).Wait(); // Block until UI update completes
-            }
+        await Task.WhenAll(loadServerServicesTasks);
+    }
+
+    private void LoadServerServices(Server server)
+    {
+        foreach (var service in server.Services)
+        {
+            var status = ServiceManager.GetServiceStatus(server.Name, service.Name);
+
+            // Use InvokeAsync for UI-bound updates
+            InvokeAsync(() =>
+            {
+                service.IsInChangeState = true;
+                StateHasChanged();
+                service.Status = status;
+                service.IsInChangeState = false;
+                StateHasChanged();
+            }).Wait(); // Block until UI update completes
         }
     }
 
@@ -69,25 +80,34 @@ public class HomeComponent : ComponentBase
         await Task.CompletedTask;
     }
 
-    private void LoadAllAppPools()
+    private async Task LoadAllAppPools()
     {
+        var loadServerAppPoolsTasks = new List<Task>();
+
         foreach (var server in Config.Value.Servers.Where(s => s.AppPools.Any()))
         {
-            foreach (var appPool in server.AppPools)
-            {
-                var state = server.Location == ServerLocationType.Remote
-                    ? PowershellIISManager.GetAppPoolStatus(server.Name, appPool)
-                    : LocalIISManager.GetAppPoolStatus(appPool);
+            loadServerAppPoolsTasks.Add(Task.Run(() => LoadServerAppPools(server)));
+        }
 
-                InvokeAsync(() =>
-                {
-                    appPool.IsInChangeState = true;
-                    StateHasChanged();
-                    appPool.State = state;
-                    appPool.IsInChangeState = false;
-                    StateHasChanged();
-                }).Wait();
-            }
+        await Task.WhenAll(loadServerAppPoolsTasks);
+    }
+
+    private void LoadServerAppPools(Server server)
+    {
+        foreach (var appPool in server.AppPools)
+        {
+            var state = server.Location == ServerLocationType.Remote
+                ? PowershellIISManager.GetAppPoolStatus(server.Name, appPool)
+                : LocalIISManager.GetAppPoolStatus(appPool);
+
+            InvokeAsync(() =>
+            {
+                appPool.IsInChangeState = true;
+                StateHasChanged();
+                appPool.State = state;
+                appPool.IsInChangeState = false;
+                StateHasChanged();
+            }).Wait();
         }
     }
 
