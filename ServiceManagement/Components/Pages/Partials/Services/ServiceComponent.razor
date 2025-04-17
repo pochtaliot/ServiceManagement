@@ -29,7 +29,7 @@
                             <tr>
                                 <td class="align-middle">@service.Name</td>
                                 <td class="align-middle">
-                                    @if (!service.IsInChangeState)
+                                    @if (!service.IsInChangeState && service.StateRetrievedSuccessfully)
                                     {
                                         <span class="service-status @(service.IsRunning ? "running-status" : "stopped-status")">@(service.IsRunning ? "Running" : "Stopped")</span>
                                     }
