@@ -109,6 +109,10 @@ h1:focus {
     cursor: pointer;
 }
 
+.error-retrieving-status {
+    font-size: 1.5rem;
+}
+
 .service-status {
     padding: 5px;
     border: 1px solid silver;

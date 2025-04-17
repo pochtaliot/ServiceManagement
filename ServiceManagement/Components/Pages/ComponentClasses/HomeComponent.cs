@@ -52,17 +52,31 @@ public class HomeComponent : ComponentBase
     {
         foreach (var service in server.Services)
         {
-            var status = ServiceManager.GetServiceStatus(server.Name, service.Name);
-
-            // Use InvokeAsync for UI-bound updates
-            InvokeAsync(() =>
+            try
             {
-                service.IsInChangeState = true;
-                StateHasChanged();
-                service.Status = status;
-                service.IsInChangeState = false;
-                StateHasChanged();
-            }).Wait(); // Block until UI update completes
+                var status = ServiceManager.GetServiceStatus(server.Name, service.Name);
+
+                // Use InvokeAsync for UI-bound updates
+                InvokeAsync(() =>
+                {
+                    service.IsInChangeState = true;
+                    StateHasChanged();
+                    service.Status = status;
+                    service.IsInChangeState = false;
+                    StateHasChanged();
+                }).Wait(); // Block until UI update completes
+            }
+            catch (Exception ex)
+            {
+                InvokeAsync(() =>
+                {
+                    service.IsInChangeState = true;
+                    StateHasChanged();
+                    service.StateRetrievedSuccessfully = false;
+                    service.IsInChangeState = false;
+                    StateHasChanged();
+                }).Wait(); 
+            }
         }
     }
 
@@ -96,18 +110,32 @@ public class HomeComponent : ComponentBase
     {
         foreach (var appPool in server.AppPools)
         {
-            var state = server.Location == ServerLocationType.Remote
-                ? PowershellIISManager.GetAppPoolStatus(server.Name, appPool)
-                : LocalIISManager.GetAppPoolStatus(appPool);
-
-            InvokeAsync(() =>
+            try
             {
-                appPool.IsInChangeState = true;
-                StateHasChanged();
-                appPool.State = state;
-                appPool.IsInChangeState = false;
-                StateHasChanged();
-            }).Wait();
+                var state = server.Location == ServerLocationType.Remote
+                        ? PowershellIISManager.GetAppPoolStatus(server.Name, appPool)
+                        : LocalIISManager.GetAppPoolStatus(appPool);
+
+                InvokeAsync(() =>
+                {
+                    appPool.IsInChangeState = true;
+                    StateHasChanged();
+                    appPool.State = state;
+                    appPool.IsInChangeState = false;
+                    StateHasChanged();
+                }).Wait();
+            }
+            catch (Exception ex)
+            {
+                InvokeAsync(() =>
+                {
+                    appPool.IsInChangeState = true;
+                    StateHasChanged();
+                    appPool.StateRetrievedSuccessfully = false;
+                    appPool.IsInChangeState = false;
+                    StateHasChanged();
+                }).Wait();
+            }
         }
     }
 

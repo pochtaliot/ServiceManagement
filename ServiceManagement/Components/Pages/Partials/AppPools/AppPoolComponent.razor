@@ -38,7 +38,11 @@
                                 <div class="d-flex align-items-center">
                                     @if (!InitializationState.On || (InitializationState.On && !appPool.IsInChangeState))
                                     {
-                                        @if (appPool.IsRunning)
+                                        @if (!appPool.StateRetrievedSuccessfully)
+                                        {
+                                            <i class="bi bi-question-octagon error-retrieving-status color-red" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Something went wrong, check connectivity"></i>
+                                        }
+                                        else if (appPool.IsRunning)
                                         {
                                             <i class="bi bi-stop-fill color-red icon-button-md" @onclick="() => StopAppPoolAndRefreshStateAsync(server, appPool)"></i>
                                         }
