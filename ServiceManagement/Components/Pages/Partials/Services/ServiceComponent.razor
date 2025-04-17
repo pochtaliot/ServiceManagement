@@ -36,7 +36,7 @@
                             </td>
                             <td class="align-middle">
                                 <div class="d-flex align-items-center">
-                                        @if (!InitializationState.On || (InitializationState.On && !service.IsInChangeState))
+                                    @if (!InitializationState.On || (InitializationState.On && !service.IsInChangeState))
                                     {
                                         @if (service.IsRunning)
                                         {
