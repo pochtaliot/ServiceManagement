@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.Options;
 using ServiceManagement.Services;
+using System.Threading.Tasks;
 
 namespace ServiceManagement.Components.Pages.ComponentClasses;
 
@@ -51,23 +52,30 @@ public class HomeComponent : ComponentBase
     {
         foreach (var service in server.Services)
         {
-            try
-            {
-                var status = ServiceManager.GetServiceStatus(server.Name, service.Name);
-
-                // Use InvokeAsync for UI-bound updates
-                InvokeAsync(() => AssignStatusOrFailResult(service, () => service.Status = status))
-                    .Wait(); // Block until UI update completes
-            }
-            catch
-            {
-                InvokeAsync(() => AssignStatusOrFailResult(service, () => service.StateRetrievedSuccessfully = false))
-                    .Wait(); 
-            }
+            LoadServerService(server, service);
         }
     }
 
-    private void AssignStatusOrFailResult(Service service, Action action)
+    protected void LoadServerService(Server server, Service service)
+    {
+        try
+        {
+            var status = ServiceManager.GetServiceStatus(server.Name, service.Name);
+
+            // Use InvokeAsync for UI-bound updates
+            InvokeAsync(() => AssignStatusOrFailResult(service, () => service.Status = status))
+                .Wait(); // Block until UI update completes
+        }
+        catch
+        {
+            InvokeAsync(() => AssignStatusOrFailResult(service, () => service.StateRetrievedSuccessfully = false))
+                .Wait();
+        }
+    }
+
+    protected void LoadServerService((Server server, Service service) parameters) => LoadServerService(parameters.server, parameters.service);
+
+    private async Task AssignStatusOrFailResult(Service service, Action action)
     {
         service.IsInChangeState = true;
         StateHasChanged();
