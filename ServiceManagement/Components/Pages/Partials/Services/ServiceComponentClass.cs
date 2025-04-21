@@ -14,11 +14,12 @@ public class ServiceComponentClass : ComponentBase
 
     protected async Task RefreshServices(Server server)
     {
+        await Task.Yield();
+        
         foreach (var item in server.Services)
         {
             item.IsInChangeState = true;
             StateHasChanged();
-            await Task.Yield();
             await OnRefreshClick.InvokeAsync((server, item));
             item.IsInChangeState = false;
             StateHasChanged();

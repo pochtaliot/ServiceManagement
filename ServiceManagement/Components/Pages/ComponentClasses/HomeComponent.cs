@@ -100,22 +100,29 @@ public class HomeComponent : ComponentBase
     {
         foreach (var appPool in server.AppPools)
         {
-            try
-            {
-                var state = server.Location == ServerLocationType.Remote
-                        ? PowershellIISManager.GetAppPoolStatus(server.Name, appPool)
-                        : LocalIISManager.GetAppPoolStatus(appPool);
-
-                InvokeAsync(() => AssignStatusOrFailResult(appPool, () => appPool.State = state))
-                    .Wait();
-            }
-            catch
-            {
-                InvokeAsync(() => AssignStatusOrFailResult(appPool, () => appPool.StateRetrievedSuccessfully = false))
-                    .Wait();
-            }
+            LoadServerAppPool(server, appPool);
         }
     }
+
+    private void LoadServerAppPool(Server server, AppPool appPool)
+    {
+        try
+        {
+            var state = server.Location == ServerLocationType.Remote
+                    ? PowershellIISManager.GetAppPoolStatus(server.Name, appPool)
+                    : LocalIISManager.GetAppPoolStatus(appPool);
+
+            InvokeAsync(() => AssignStatusOrFailResult(appPool, () => appPool.State = state))
+                .Wait();
+        }
+        catch
+        {
+            InvokeAsync(() => AssignStatusOrFailResult(appPool, () => appPool.StateRetrievedSuccessfully = false))
+                .Wait();
+        }
+    }
+
+    protected void LoadServerAppPool((Server server, AppPool appPool) parameters) => LoadServerAppPool(parameters.server, parameters.appPool);
 
     private void AssignStatusOrFailResult(AppPool appPool, Action action)
     {

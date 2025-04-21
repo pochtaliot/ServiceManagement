@@ -10,11 +10,20 @@ public class AppPoolComponentClass : ComponentBase
     [Inject] protected ILocalIISManager LocalIISManager { get; set; } = null!;
     [Parameter] public IEnumerable<Server> Servers { get; set; } = Enumerable.Empty<Server>();
     [Parameter] public required InitializationState InitializationState { get; set; }
-    [Parameter] public EventCallback<Server> OnRefreshClick { get; set; }
+    [Parameter] public EventCallback<(Server Server, AppPool AppPool)> OnRefreshClick { get; set; }
 
     protected async Task RefreshAppPools(Server server)
     {
-        await OnRefreshClick.InvokeAsync(server);
+        await Task.Yield();
+
+        foreach (var item in server.AppPools)
+        {
+            item.IsInChangeState = true;
+            StateHasChanged();
+            await OnRefreshClick.InvokeAsync((server, item));
+            item.IsInChangeState = false;
+            StateHasChanged();
+        }
     }
 
     protected async Task StartAppPoolAndRefreshStateAsync(Server server, AppPool appPool)
