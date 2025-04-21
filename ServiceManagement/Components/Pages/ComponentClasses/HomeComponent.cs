@@ -47,7 +47,7 @@ public class HomeComponent : ComponentBase
         await Task.WhenAll(loadServerServicesTasks);
     }
 
-    private void LoadServerServices(Server server)
+    protected void LoadServerServices(Server server)
     {
         foreach (var service in server.Services)
         {
@@ -88,7 +88,7 @@ public class HomeComponent : ComponentBase
         await Task.WhenAll(loadServerAppPoolsTasks);
     }
 
-    private void LoadServerAppPools(Server server)
+    protected void LoadServerAppPools(Server server)
     {
         foreach (var appPool in server.AppPools)
         {

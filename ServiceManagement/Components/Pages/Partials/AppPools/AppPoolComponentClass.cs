@@ -10,24 +10,11 @@ public class AppPoolComponentClass : ComponentBase
     [Inject] protected ILocalIISManager LocalIISManager { get; set; } = null!;
     [Parameter] public IEnumerable<Server> Servers { get; set; } = Enumerable.Empty<Server>();
     [Parameter] public required InitializationState InitializationState { get; set; }
+    [Parameter] public EventCallback<Server> OnRefreshClick { get; set; }
 
     protected async Task RefreshAppPools(Server server)
     {
-        foreach (var appPool in server.AppPools)
-        {
-            appPool.IsInChangeState = true;
-            StateHasChanged();
-
-            if (server.Location == ServerLocationType.Remote)
-                appPool.State = PowershellIISManager.GetAppPoolStatus(server.Name, appPool);
-            else
-                appPool.State = LocalIISManager.GetAppPoolStatus(appPool);
-
-            appPool.IsInChangeState = false;
-            StateHasChanged();
-        }
-
-        await Task.CompletedTask;
+        await OnRefreshClick.InvokeAsync(server);
     }
 
     protected async Task StartAppPoolAndRefreshStateAsync(Server server, AppPool appPool)
