@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.Options;
 using ServiceManagement.Services;
-using System.Threading.Tasks;
 
 namespace ServiceManagement.Components.Pages.ComponentClasses;
 
@@ -57,41 +56,24 @@ public class HomeComponent : ComponentBase
                 var status = ServiceManager.GetServiceStatus(server.Name, service.Name);
 
                 // Use InvokeAsync for UI-bound updates
-                InvokeAsync(() =>
-                {
-                    service.IsInChangeState = true;
-                    StateHasChanged();
-                    service.Status = status;
-                    service.IsInChangeState = false;
-                    StateHasChanged();
-                }).Wait(); // Block until UI update completes
+                InvokeAsync(() => AssignStatusOrFailResult(service, () => service.Status = status))
+                    .Wait(); // Block until UI update completes
             }
-            catch (Exception ex)
+            catch
             {
-                InvokeAsync(() =>
-                {
-                    service.IsInChangeState = true;
-                    StateHasChanged();
-                    service.StateRetrievedSuccessfully = false;
-                    service.IsInChangeState = false;
-                    StateHasChanged();
-                }).Wait(); 
+                InvokeAsync(() => AssignStatusOrFailResult(service, () => service.StateRetrievedSuccessfully = false))
+                    .Wait(); 
             }
         }
     }
 
-    protected async Task RefreshServices(Server server)
+    private void AssignStatusOrFailResult(Service service, Action action)
     {
-        foreach (var service in server.Services)
-        {
-            service.IsInChangeState = true;
-            StateHasChanged();
-            service.Status = ServiceManager.GetServiceStatus(server.Name, service.Name);
-            service.IsInChangeState = false;
-            StateHasChanged();
-        }
-
-        await Task.CompletedTask;
+        service.IsInChangeState = true;
+        StateHasChanged();
+        action.Invoke();
+        service.IsInChangeState = false;
+        StateHasChanged();
     }
 
     private async Task LoadAllAppPools()
@@ -116,45 +98,23 @@ public class HomeComponent : ComponentBase
                         ? PowershellIISManager.GetAppPoolStatus(server.Name, appPool)
                         : LocalIISManager.GetAppPoolStatus(appPool);
 
-                InvokeAsync(() =>
-                {
-                    appPool.IsInChangeState = true;
-                    StateHasChanged();
-                    appPool.State = state;
-                    appPool.IsInChangeState = false;
-                    StateHasChanged();
-                }).Wait();
+                InvokeAsync(() => AssignStatusOrFailResult(appPool, () => appPool.State = state))
+                    .Wait();
             }
-            catch (Exception ex)
+            catch
             {
-                InvokeAsync(() =>
-                {
-                    appPool.IsInChangeState = true;
-                    StateHasChanged();
-                    appPool.StateRetrievedSuccessfully = false;
-                    appPool.IsInChangeState = false;
-                    StateHasChanged();
-                }).Wait();
+                InvokeAsync(() => AssignStatusOrFailResult(appPool, () => appPool.StateRetrievedSuccessfully = false))
+                    .Wait();
             }
         }
     }
 
-    protected async Task RefreshAppPools(Server server)
+    private void AssignStatusOrFailResult(AppPool appPool, Action action)
     {
-        foreach (var appPool in server.AppPools)
-        {
-            appPool.IsInChangeState = true;
-            StateHasChanged();
-
-            if (server.Location == ServerLocationType.Remote)
-                appPool.State = PowershellIISManager.GetAppPoolStatus(server.Name, appPool);
-            else
-                appPool.State = LocalIISManager.GetAppPoolStatus(appPool);
-
-            appPool.IsInChangeState = false;
-            StateHasChanged();
-        }
-
-        await Task.CompletedTask;
+        appPool.IsInChangeState = true;
+        StateHasChanged();
+        action.Invoke();
+        appPool.IsInChangeState = false;
+        StateHasChanged();
     }
 }
