@@ -75,7 +75,7 @@ public class HomeComponent : ComponentBase
 
     protected void LoadServerService((Server server, Service service) parameters) => LoadServerService(parameters.server, parameters.service);
 
-    private async Task AssignStatusOrFailResult(Service service, Action action)
+    private void AssignStatusOrFailResult(Service service, Action action)
     {
         service.IsInChangeState = true;
         StateHasChanged();

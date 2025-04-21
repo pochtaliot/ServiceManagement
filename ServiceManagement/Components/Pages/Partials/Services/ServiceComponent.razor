@@ -36,7 +36,7 @@
                                 </td>
                                 <td class="align-middle">
                                     <div class="d-flex align-items-center">
-                                        @if (!InitializationState.On || (InitializationState.On && !service.IsInChangeState))
+                                        @if ((!InitializationState.On || (InitializationState.On && !service.IsInChangeState)) && !service.IsInChangeState)
                                         {
                                             @if (!service.StateRetrievedSuccessfully)
                                             {
@@ -50,10 +50,13 @@
                                             {
                                                 <i class="bi bi-play-fill color-green icon-button-md" @onclick="() => StartService(server.Name, service, service.StartupArguments)"></i>
                                             }
-                                    }
-                                    <div class="spinner-border margin-left-10 @(service.IsInChangeState ? "" : "d-none")" role="status">
-                                        <span class="sr-only"></span>
-                                    </div>
+                                        }
+                                        else
+                                        {
+                                            <div class="spinner-border margin-left-10" role="status">
+                                                <span class="sr-only"></span>
+                                            </div>
+                                        }
                                 </div>
                             </td>
                         </tr>
