@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.Options;
 using ServiceManagement.Services;
-using System.Threading.Tasks;
 
 namespace ServiceManagement.Components.Pages.ComponentClasses;
 
