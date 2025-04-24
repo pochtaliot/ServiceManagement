@@ -1,5 +1,6 @@
 using System.Management;
 using System.ServiceProcess;
+using System.Text.RegularExpressions;
 
 namespace ServiceManagement;
 
@@ -8,38 +9,18 @@ public interface IWindowsServiceManager
     void StartService(string serverName, string serviceName, string? startupArguments = null);
     void StopService(string serverName, string serviceName);
     ServiceControllerStatus GetServiceStatus(string serverName, string serviceName);
+    string GetServiceStartupArguments(string serverName, string serviceName);
 }
 
 public class WindowsServiceManager : IWindowsServiceManager
 {
     public void StartService(string serverName, string serviceName, string? startupArguments = null)
     {
-        if (string.IsNullOrEmpty(startupArguments))
+        using var sc = new ServiceController(serviceName, serverName);
+        if (sc.Status != ServiceControllerStatus.Running)
         {
-            // Start without arguments using ServiceController
-            using var sc = new ServiceController(serviceName, serverName);
-            if (sc.Status != ServiceControllerStatus.Running)
-            {
-                sc.Start();
-                sc.WaitForStatus(ServiceControllerStatus.Running, TimeSpan.FromSeconds(30));
-            }
-        }
-        else
-        {
-            // Start with arguments using WMI
-            var scope = new ManagementScope($"\\\\{serverName}\\root\\cimv2");
-            scope.Connect();
-
-            var query = new SelectQuery($"SELECT * FROM Win32_Service WHERE Name = '{serviceName}'");
-            using var searcher = new ManagementObjectSearcher(scope, query);
-
-            foreach (ManagementObject service in searcher.Get())
-            {
-                var result = service.InvokeMethod("StartService", new object[] { startupArguments });
-             
-                if (result != null && (uint)result != 0)
-                    throw new InvalidOperationException($"Failed to start service '{serviceName}' with arguments. Error code: {(uint)result}");
-            }
+            sc.Start();
+            sc.WaitForStatus(ServiceControllerStatus.Running, TimeSpan.FromSeconds(30));
         }
     }
 
@@ -57,5 +38,28 @@ public class WindowsServiceManager : IWindowsServiceManager
     {
         using var sc = new ServiceController(serviceName, serverName);
         return sc.Status;
+    }
+
+    public string GetServiceStartupArguments(string serverName, string serviceName)
+    {
+        var scope = new ManagementScope($"\\\\{serverName}\\root\\cimv2");
+        scope.Connect();
+
+        var query = new SelectQuery($"SELECT * FROM Win32_Service WHERE Name = '{serviceName}'");
+        using var searcher = new ManagementObjectSearcher(scope, query);
+
+        foreach (ManagementObject service in searcher.Get())
+        {
+            var pathName = service.Properties["PathName"]?.Value?.ToString() ?? string.Empty;
+
+            // Extract arguments after the executable path
+            var match = Regex.Match(pathName, @"^(?:""[^""]+""|[^\s]+)\s+(.*)$");
+            if (match.Success)
+                return match.Groups[1].Value;
+
+            return string.Empty; // No arguments found
+        }
+
+        throw new InvalidOperationException($"Service '{serviceName}' not found on server '{serverName}'.");
     }
 }

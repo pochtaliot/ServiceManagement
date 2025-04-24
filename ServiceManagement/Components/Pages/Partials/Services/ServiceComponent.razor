@@ -20,6 +20,7 @@
                         <tr>
                             <th>Name</th>
                             <th>Status</th>
+                            <th>Arguments</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -32,6 +33,12 @@
                                     @if (!service.IsInChangeState && service.StateRetrievedSuccessfully)
                                     {
                                         <span class="service-status @(service.IsRunning ? "running-status" : "stopped-status")">@(service.IsRunning ? "Running" : "Stopped")</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (!service.IsInChangeState && service.StateRetrievedSuccessfully)
+                                    {
+                                        <span class="service-arguments">@service.StartupArguments</span>
                                     }
                                 </td>
                                 <td class="align-middle">

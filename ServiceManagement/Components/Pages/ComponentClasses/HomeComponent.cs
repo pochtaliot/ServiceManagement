@@ -60,9 +60,10 @@ public class HomeComponent : ComponentBase
         try
         {
             var status = ServiceManager.GetServiceStatus(server.Name, service.Name);
+            var startupArguments = ServiceManager.GetServiceStartupArguments(server.Name, service.Name);
 
             // Use InvokeAsync for UI-bound updates
-            InvokeAsync(() => AssignStatusOrFailResult(service, () => service.Status = status))
+            InvokeAsync(() => AssignStatusOrFailResult(service, () => {service.Status = status; service.StartupArguments = startupArguments;}))
                 .Wait(); // Block until UI update completes
         }
         catch
@@ -88,9 +89,7 @@ public class HomeComponent : ComponentBase
         var loadServerAppPoolsTasks = new List<Task>();
 
         foreach (var server in Config.Value.Servers.Where(s => s.AppPools.Any()))
-        {
             loadServerAppPoolsTasks.Add(Task.Run(() => LoadServerAppPools(server)));
-        }
 
         await Task.WhenAll(loadServerAppPoolsTasks);
     }
@@ -98,9 +97,7 @@ public class HomeComponent : ComponentBase
     protected void LoadServerAppPools(Server server)
     {
         foreach (var appPool in server.AppPools)
-        {
             LoadServerAppPool(server, appPool);
-        }
     }
 
     private void LoadServerAppPool(Server server, AppPool appPool)
