@@ -75,7 +75,7 @@ public class AppPoolComponentClass : ComponentBase
         if (server.Location == ServerLocationType.Remote)
             PowershellIISManager.StopAppPool(server.Name, appPool);
         else
-            LocalIISManager.StopAppPool(appPool);
+            LocalIISManager.StopAppPoolWithSites(appPool);
     }
 
     private async Task RefreshAppPoolStateAfterStateChangeAsync(Server server, AppPool appPool, ObjectState targetState)
@@ -93,6 +93,6 @@ public class AppPoolComponentClass : ComponentBase
         if (server.Location == ServerLocationType.Remote)
             PowershellIISManager.StartAppPool(server.Name, appPool);
         else
-            LocalIISManager.StartAppPoolAsync(appPool);
+            LocalIISManager.StartAppPoolWithSites(appPool);
     }
 }

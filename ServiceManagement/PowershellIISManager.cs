@@ -15,10 +15,16 @@ public class PowershellIISManager : IPowershellIISManager
     public void StartAppPool(string serverName, AppPool appPool)
     {
         ExecutePowerShellCommand(serverName, $"Start-WebAppPool -Name '{appPool.Name}'");
+        ExecutePowerShellCommand(serverName, $@"
+            Get-Website | Where-Object {{ $_.ApplicationPool -eq '{appPool.Name}' }} | ForEach-Object {{ Start-Website -Name $_.Name }}
+        ");
     }
 
     public void StopAppPool(string serverName, AppPool appPool)
     {
+        ExecutePowerShellCommand(serverName, $@"
+            Get-Website | Where-Object {{ $_.ApplicationPool -eq '{appPool.Name}' }} | ForEach-Object {{ Stop-Website -Name $_.Name }}
+        ");
         ExecutePowerShellCommand(serverName, $"Stop-WebAppPool -Name '{appPool.Name}'");
     }
 
