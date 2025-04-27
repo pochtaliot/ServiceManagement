@@ -14,6 +14,13 @@ public interface IWindowsServiceManager
 
 public class WindowsServiceManager : IWindowsServiceManager
 {
+    private readonly ManagementScopeDispatcher _scopeDispatcher;
+
+    public WindowsServiceManager(ManagementScopeDispatcher scopeDispatcher)
+    {
+        _scopeDispatcher = scopeDispatcher;
+    }
+
     public void StartService(string serverName, string serviceName, string? startupArguments = null)
     {
         using var sc = new ServiceController(serviceName, serverName);
@@ -42,9 +49,7 @@ public class WindowsServiceManager : IWindowsServiceManager
 
     public string GetServiceStartupArguments(string serverName, string serviceName)
     {
-        var scope = new ManagementScope($"\\\\{serverName}\\root\\cimv2");
-        scope.Connect();
-
+        var scope = _scopeDispatcher.GetScope(serverName);
         var query = new SelectQuery($"SELECT * FROM Win32_Service WHERE Name = '{serviceName}'");
         using var searcher = new ManagementObjectSearcher(scope, query);
 
@@ -53,9 +58,11 @@ public class WindowsServiceManager : IWindowsServiceManager
             var pathName = service.Properties["PathName"]?.Value?.ToString() ?? string.Empty;
 
             // Extract arguments after the executable path
-            var match = Regex.Match(pathName, @"^(?:""[^""]+""|[^\s]+)\s+(.*)$");
+            var match = Regex.Match(pathName, @"^(?:""[^""]+""|[^\s]+)(?:\s+(.*))?$");
             if (match.Success)
-                return match.Groups[1].Value;
+            {
+                return match.Groups[1].Value.Trim();
+            }
 
             return string.Empty; // No arguments found
         }

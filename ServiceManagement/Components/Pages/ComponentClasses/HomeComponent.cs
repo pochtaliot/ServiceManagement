@@ -11,6 +11,7 @@ public class HomeComponent : ComponentBase
     [Inject] protected ILocalIISManager LocalIISManager { get; set; } = null!;
     [Inject] protected IWindowsServiceManager ServiceManager { get; set; } = null!;
     [Inject] protected PreloadService PreloadService { get; set; } = null!;
+    [Inject] protected ManagementScopeDispatcher ScopeDispatcher { get; set; } = null!;
     protected InitializationState InitializationState { get; set; } = new();
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -40,9 +41,7 @@ public class HomeComponent : ComponentBase
         var loadServerServicesTasks = new List<Task>();
 
         foreach (var server in Config.Value.Servers.Where(s => s.Services.Any()))
-        {
             loadServerServicesTasks.Add(Task.Run(() => LoadServerServices(server)));
-        }
 
         await Task.WhenAll(loadServerServicesTasks);
     }
@@ -50,9 +49,9 @@ public class HomeComponent : ComponentBase
     protected void LoadServerServices(Server server)
     {
         foreach (var service in server.Services)
-        {
             LoadServerService(server, service);
-        }
+
+        ScopeDispatcher.RemoveScope(server.Name);
     }
 
     protected void LoadServerService(Server server, Service service)
