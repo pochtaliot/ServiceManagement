@@ -6,19 +6,25 @@ namespace ServiceManagement;
 public class ManagementScopeDispatcher
 {
     private readonly ConcurrentDictionary<string, ManagementScope> _scopes = new();
+    public void AddScope(string serverName)
+    {
+        if (_scopes.TryGetValue(serverName, out var existingScope))
+            return;
 
+        var scope = new ManagementScope($"\\\\{serverName}\\root\\cimv2");
+        scope.Connect();
+        _scopes.TryAdd(serverName, existingScope);
+    }
+
+    /// <summary>
+    /// Gets ManagementScope, previously created and added to _scopes dictionary.
+    /// </summary>
+    /// <param name="serverName"></param>
+    /// <returns></returns>
     public ManagementScope GetScope(string serverName)
     {
-        return _scopes.GetOrAdd(serverName, server =>
-        {
-            var scope = new ManagementScope($"\\\\{server}\\root\\cimv2");
-            scope.Connect();
-            return scope;
-        });
+        _scopes.TryGetValue(serverName, out var scope);
+        return scope;
     }
-
-    public void RemoveScope(string serverName)
-    {
-        _scopes.TryRemove(serverName, out var scope);
-    }
+    public void RemoveScope(string serverName) => _scopes.TryRemove(serverName, out var scope);
 }

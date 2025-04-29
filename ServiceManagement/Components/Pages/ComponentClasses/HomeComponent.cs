@@ -48,6 +48,8 @@ public class HomeComponent : ComponentBase
 
     protected void LoadServerServices(Server server)
     {
+        ScopeDispatcher.AddScope(server.Name);
+
         foreach (var service in server.Services)
             LoadServerService(server, service);
 
@@ -65,8 +67,10 @@ public class HomeComponent : ComponentBase
             InvokeAsync(() => AssignStatusOrFailResult(service, () => {service.Status = status; service.StartupArguments = startupArguments;}))
                 .Wait(); // Block until UI update completes
         }
-        catch
+        catch (Exception ex)
         {
+            Console.WriteLine($"Error retrieving status for service {service.Name} on server {server.Name}: {ex.Message}");
+
             InvokeAsync(() => AssignStatusOrFailResult(service, () => service.StateRetrievedSuccessfully = false))
                 .Wait();
         }
