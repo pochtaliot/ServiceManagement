@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.Options;
+using Microsoft.JSInterop;
 using ServiceManagement.Services;
 
 namespace ServiceManagement.Components.Pages.ComponentClasses;
@@ -12,6 +13,7 @@ public class HomeComponent : ComponentBase
     [Inject] protected IWindowsServiceManager ServiceManager { get; set; } = null!;
     [Inject] protected PreloadService PreloadService { get; set; } = null!;
     [Inject] protected ManagementScopeDispatcher ScopeDispatcher { get; set; } = null!;
+    [Inject] protected IJSRuntime JSRuntime { get; set; } = null!;
     protected InitializationState InitializationState { get; set; } = new();
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -69,8 +71,8 @@ public class HomeComponent : ComponentBase
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error retrieving status for service {service.Name} on server {server.Name}: {ex.Message}");
-
+            JSRuntime.InvokeVoidAsync("console.error", $"Error retrieving status for service {service.Name} on server {server.Name}: {ex.Message}");
+            
             InvokeAsync(() => AssignStatusOrFailResult(service, () => service.StateRetrievedSuccessfully = false))
                 .Wait();
         }
@@ -114,8 +116,10 @@ public class HomeComponent : ComponentBase
             InvokeAsync(() => AssignStatusOrFailResult(appPool, () => appPool.State = state))
                 .Wait();
         }
-        catch
+        catch (Exception ex)
         {
+            JSRuntime.InvokeVoidAsync("console.error", $"Error retrieving status for app pool {appPool.Name} on server {server.Name}: {ex.Message}");
+
             InvokeAsync(() => AssignStatusOrFailResult(appPool, () => appPool.StateRetrievedSuccessfully = false))
                 .Wait();
         }
