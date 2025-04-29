@@ -7,6 +7,7 @@ namespace ServiceManagement.Components.Pages.Partials.Services;
 public class ServiceComponentClass : ComponentBase
 {
     [Inject] protected IWindowsServiceManager ServiceManager { get; set; } = null!;
+    [Inject] protected ManagementScopeDispatcher ScopeDispatcher { get; set; } = null!;
     [Parameter] public IEnumerable<Server> Servers { get; set; } = Enumerable.Empty<Server>();
     [Parameter] public required InitializationState InitializationState { get; set; }
     [Parameter] public EventCallback<(Server Server, Service Service)> OnRefreshClick { get; set; }
@@ -15,6 +16,14 @@ public class ServiceComponentClass : ComponentBase
     {
         await Task.Yield();
         
+        if (server.Services.Any())
+        {
+            server.Services[0].IsInChangeState = true;
+            StateHasChanged(); 
+        }
+
+        ScopeDispatcher.AddScope(server.Name);
+
         foreach (var item in server.Services)
         {
             item.IsInChangeState = true;
@@ -23,6 +32,8 @@ public class ServiceComponentClass : ComponentBase
             item.IsInChangeState = false;
             StateHasChanged();
         }
+
+        ScopeDispatcher.RemoveScope(server.Name);
     }
 
     protected async Task StartService(string serverName, Service service, string? startupArguments)
