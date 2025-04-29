@@ -13,7 +13,7 @@ public class ManagementScopeDispatcher
 
         var scope = new ManagementScope($"\\\\{serverName}\\root\\cimv2");
         scope.Connect();
-        _scopes.TryAdd(serverName, existingScope);
+        _scopes.TryAdd(serverName, scope);
     }
 
     /// <summary>
