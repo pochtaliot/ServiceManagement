@@ -20,6 +20,7 @@ public class Server
     public ServerLocationType Location { get; set; }
     public List<Service> Services { get; set; } = new();
     public List<AppPool> AppPools { get; set; } = new();
+    public bool ShowStartupArguments { get; set; } = false;
 }
 
 public enum ServerLocationType
@@ -46,4 +47,5 @@ public class Service
     public bool IsInChangeState { get; set; } = true;
     public bool IsRunning => Status == ServiceControllerStatus.Running;
     public bool StateRetrievedSuccessfully { get; set; } = true;
+    // Removed ShowStartupArguments, now handled at Server level
 }

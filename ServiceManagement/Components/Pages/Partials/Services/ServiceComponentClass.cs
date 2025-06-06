@@ -65,4 +65,10 @@ public class ServiceComponentClass : ComponentBase
 
         service.IsInChangeState = false;
     }
+
+    protected async Task ToggleShowArguments(Server server)
+    {
+        server.ShowStartupArguments = !server.ShowStartupArguments;
+        await RefreshServices(server);
+    }
 }

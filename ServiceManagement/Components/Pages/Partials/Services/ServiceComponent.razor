@@ -7,8 +7,7 @@
     {
         <div class="card my-3">
             <div class="card-header d-flex align-items-center justify-content-between">
-                <h4 class="card-title">@server.Alias (@server.Name)</h4>
-                @* <i class="bi bi-arrow-clockwise icon-button-md"></i> *@
+                <h4 class="card-title">@server.Alias (@server.Name)</h4>                
             </div>
             <div class="card-body">
                 <div class="d-flex align-items-center justify-content-between">
@@ -20,7 +19,12 @@
                         <tr>
                             <th>Name</th>
                             <th>Status</th>
-                            <th>Arguments</th>
+                            <th>Arguments
+                                <button class="btn btn-link text-decoration-none p-0" @onclick="() => ToggleShowArguments(server)">
+                                    <i class="bi bi-eye-slash @(!server.ShowStartupArguments ? "" : "d-none")"></i>
+                                    <i class="bi bi-eye @(server.ShowStartupArguments ? "" : "d-none") : :"></i>
+                                </button>
+                            </th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -36,7 +40,7 @@
                                     }
                                 </td>
                                 <td>
-                                    @if (!service.IsInChangeState && service.StateRetrievedSuccessfully)
+                                    @if (!service.IsInChangeState && service.StateRetrievedSuccessfully && server.ShowStartupArguments)
                                     {
                                         <span class="service-arguments">@service.StartupArguments</span>
                                     }

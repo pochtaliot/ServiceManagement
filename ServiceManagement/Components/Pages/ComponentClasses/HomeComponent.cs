@@ -63,7 +63,11 @@ public class HomeComponent : ComponentBase
         try
         {
             var status = ServiceManager.GetServiceStatus(server.Name, service.Name);
-            var startupArguments = ServiceManager.GetServiceStartupArguments(server.Name, service.Name);
+            string? startupArguments = null;
+            if (server.ShowStartupArguments)
+            {
+                startupArguments = ServiceManager.GetServiceStartupArguments(server.Name, service.Name);
+            }
 
             // Use InvokeAsync for UI-bound updates
             InvokeAsync(() => AssignStatusOrFailResult(service, () => {service.Status = status; service.StartupArguments = startupArguments;}))
