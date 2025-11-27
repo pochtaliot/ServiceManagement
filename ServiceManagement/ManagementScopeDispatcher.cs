@@ -25,7 +25,7 @@ public class ManagementScopeDispatcher
     public ManagementScope GetScope(string serverName)
     {
         _scopes.TryGetValue(serverName, out var scope);
-        return scope;
+        return scope!;
     }
     public void RemoveScope(string serverName) => _scopes.TryRemove(serverName, out var scope);
 }

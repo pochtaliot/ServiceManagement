@@ -1,4 +1,5 @@
 using System.Management;
+using System.Runtime.Versioning;
 using System.ServiceProcess;
 using System.Text.RegularExpressions;
 
@@ -12,6 +13,7 @@ public interface IWindowsServiceManager
     string GetServiceStartupArguments(string serverName, string serviceName);
 }
 
+[SupportedOSPlatform("windows")]
 public class WindowsServiceManager : IWindowsServiceManager
 {
     private readonly ManagementScopeDispatcher _scopeDispatcher;
